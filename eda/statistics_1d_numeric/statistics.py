@@ -2,7 +2,7 @@ from io import StringIO
 
 from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
-from eda.statistics_1d_numeric.destats import *
+from eda.destats import *
 
 
 def register_1d_stats_callbacks():
@@ -120,5 +120,3 @@ def register_1d_stats_callbacks():
         ])]
 
         return tables
-
-
