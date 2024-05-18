@@ -3,7 +3,7 @@ import pandas as pd
 from dash import html, dcc, callback, Input, Output
 from dash.exceptions import PreventUpdate
 
-from src.FileInput.csv_parser import get_dataframe_from_contents
+from eda.file_input.csv_parser import get_dataframe_from_contents
 
 
 def register_input_callbacks():
@@ -41,13 +41,12 @@ def register_input_callbacks():
         ],
         Input('upload-data', 'contents'),
     )
-    def handle_file(contents):
-        if contents is None:
+    def handle_file(content: str | None):
+        if content is None:
             raise PreventUpdate
 
-        result = get_dataframe_from_contents(contents)
-
-        if isinstance(result, pd.DataFrame):
+        try:
+            result = get_dataframe_from_contents(content)
             return result.to_json(), dash.no_update
-        else:
-            return dash.no_update, html.Div(result)
+        except TypeError as e:
+            return dash.no_update, html.Div(str(e))

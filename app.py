@@ -1,7 +1,7 @@
 from dash import Dash, html
 
-from src.FileInput.file_input import register_input_callbacks
-from src.DataTable.data_table import register_dataframe_callbacks
+from eda.file_input.file_input import register_input_callbacks
+from eda.data_table.data_table import register_dataframe_callbacks
 
 app = Dash(__name__, suppress_callback_exceptions=True)
 
