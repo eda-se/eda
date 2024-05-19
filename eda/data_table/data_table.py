@@ -2,7 +2,7 @@ from io import StringIO
 
 import pandas as pd
 from dash import html, callback, Input, Output, dash_table, dcc, State, exceptions, ALL, no_update
-from eda.DataTable.column_type_converter import covert_column_data_type
+from eda.data_table.column_type_converter import covert_column_data_type
 
 
 def register_dataframe_callbacks():
