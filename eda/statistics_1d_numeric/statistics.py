@@ -54,36 +54,18 @@ def register_1d_stats_callbacks():
         info = f"Aktualnie wybrana wartość: {col}"
         df = pd.read_json(StringIO(data))
         values = df[col]
-        stats = [
-            html.Div([
-                html.H3("Liczba pustycz wartości:"),
-                html.Pre(na_count_1d(values))
-            ]),
-            html.Div([
-                html.H3("Mediana:"),
-                html.Pre(median_1d(values))
-            ]),
-            html.Div([
-                html.H3("Średnia:"),
-                html.Pre(mean_1d(values))
-            ]),
-            html.Div([
-                html.H3("Odchylenie standardowe:"),
-                html.Pre(std_deviation_1d(values))
-            ]),
-            html.Div([
-                html.H3("Wariancja:"),
-                html.Pre(variance_1d(values))
-            ]),
-            html.Div([
-                html.H3("Rozstęp:"),
-                html.Pre(range_1d(values))
-            ]),
-            html.Div([
-                html.H3("Skośność/asymetria rozkładu:"),
-                html.Pre(skewness_1d(values))
-            ])
-        ]
+
+        labels = ["Liczba pustycz wartości:", "Mediana:", "Średnia:", "Odchylenie standardowe:", "Wariancja:", "Rozstęp:", "Skośność/asymetria rozkładu:"]
+        functions = [na_count_1d(values), median_1d(values), mean_1d(values), std_deviation_1d(values), variance_1d(values), range_1d(values), skewness_1d(values)]
+
+        stats = []
+        for label, func in zip(labels, functions):
+            stats.append(
+                html.Div([
+                    html.H3(label),
+                    html.Pre(func)
+                ]),
+            )
         return info, stats
 
     @callback(
@@ -127,13 +109,6 @@ def register_1d_stats_callbacks():
             dash_table.DataTable(
                 data=[{'Wartość': key, 'Proporcja': value} for key, value in proportion_values.items()],
                 columns=[{'name': 'Wartość', 'id': 'Wartość'}, {'name': 'Proporcja', 'id': 'Proporcja'}],
-                page_size=10
-            )
-        ]), html.Div([
-            html.H4('Najczęściej występujące wartości'),
-            dash_table.DataTable(
-                data=[{'Wartość': key, 'Moda': value} for key, value in mode_values.items()],
-                columns=[{'name': 'Moda', 'id': 'Moda'}],
                 page_size=10
             )
         ]), html.Div([
