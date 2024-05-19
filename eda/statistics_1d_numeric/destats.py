@@ -6,11 +6,11 @@ def unique_1d(values: pd.Series) -> np.ndarray:
     return values.unique()
 
 
-def count_1d(values: pd.Series) -> pd.Series:   #tutaj było [] ale z nim nie dziala?
+def count_1d(values: pd.Series) -> pd.Series:
     return values.value_counts()
 
 
-def proportion_1d(values: pd.Series) -> pd.Series:  # to samo ^^
+def proportion_1d(values: pd.Series) -> pd.Series:
     return values.value_counts() / values.count()
 
 
