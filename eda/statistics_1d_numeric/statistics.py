@@ -1,6 +1,6 @@
 from io import StringIO
 
-from dash import dcc, html, callback, Input, Output, State, dash_table
+from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
 from eda.statistics_1d_numeric.destats import *
 
@@ -15,7 +15,7 @@ def register_1d_stats_callbacks():
         df = pd.read_json(StringIO(df_json))
 
         return html.Div([
-            html.H1("Statystki 1D", style={'fontSize': '36px'}),
+            html.H1("Statystki 1D Numeryczne", style={'fontSize': '36px'}),
             html.Div(id='dropdown_1d'),
             html.Div(id='show_current_1d_val'),
             html.Div(id='stats-container'),
@@ -50,7 +50,7 @@ def register_1d_stats_callbacks():
         if col is None:
             raise PreventUpdate
         if dtypes[col] != 'int64' and dtypes[col] != 'float64':
-            raise PreventUpdate
+            return "Wybierz kolumne typu int lub float", ""
         info = f"Aktualnie wybrana wartość: {col}"
         df = pd.DataFrame(data)
         values = df[col]
@@ -79,7 +79,7 @@ def register_1d_stats_callbacks():
         if data is None or col is None:
             raise PreventUpdate
         if dtypes[col] != 'int64' and dtypes[col] != 'float64':
-            raise PreventUpdate
+            return ""
 
         df = pd.DataFrame(data)
         values = df[col]
