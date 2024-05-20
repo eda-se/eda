@@ -19,8 +19,15 @@ def register_graph_callbacks():
             html.H1("Generacja grafu", style={'fontSize': '36px'}),
             html.Div(id='dropdowns_2d'),
             html.Div(id='current_chosen'),
-
+            html.Div([
+                html.Label("Wybierz zakres wierszy:"),
+                dcc.Input(id='start-row', type='number', placeholder='Początkowy wiersz', min=0, max=len(df) - 1,
+                          value=0),
+                dcc.Input(id='end-row', type='number', placeholder='Końcowy wiersz', min=0, max=len(df) - 1,
+                          value=len(df) - 1),
+            ]),
             html.Button('Wygeneruj wykres liniowy', id='generate_line_graph', n_clicks=0),
+
             dcc.Graph(id='line-chart'),
 
         ])
@@ -50,16 +57,21 @@ def register_graph_callbacks():
         State('stored-dataframe', 'data'),
         State('x-axis-dropdown', 'value'),
         State('y-axis-dropdown', 'value'),
+        State('start-row', 'value'),
+        State('end-row', 'value'),
         prevent_initial_call=True
     )
-    def generate_line_graph(n_clicks, data_table, x_col, y_col):
+    def generate_line_graph(n_clicks, data_table, x_col, y_col, start_row, end_row):
         if data_table is None or x_col is None or y_col is None:
             raise PreventUpdate
-        info = f"Aktualnie wybrane wartości: {x_col, y_col}"
+
+        info = f"Aktualnie wybrane wartości: {x_col}, {y_col}, Wiersze: {start_row}-{end_row}"
 
         #df = pd.DataFrame(data_table)
         df = pd.read_json(StringIO(data_table))
-        fig = px.line(df, x=x_col, y=y_col)
+        filtered_df = df.iloc[start_row:end_row + 1]
+
+        fig = px.line(filtered_df, x=x_col, y=y_col)
         return info, fig
 
 
