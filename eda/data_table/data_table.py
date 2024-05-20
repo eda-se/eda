@@ -61,8 +61,8 @@ def register_dataframe_callbacks():
         Output('stored-dtypes', 'data'),
         [Input({'type-dropdown': ALL}, 'value')],
         [Input({'type-dropdown': ALL}, 'id'),
-         State('data-table', 'data'),
-         State('stored-dtypes', 'data')],
+        State('data-table', 'data'),
+        State('stored-dtypes', 'data')],
         prevent_initial_call=True
     )
     def update_data_types(selected_values, column_ids, data_table_data, stored_dtypes):
