@@ -54,7 +54,7 @@ def register_graph_callbacks():
         Output('current_chosen', 'children'),
         Output('line-chart', 'figure'),
         Input('generate_line_graph', 'n_clicks'),
-        State('stored-dataframe', 'data'),
+        State('data-table', 'data'),
         State('x-axis-dropdown', 'value'),
         State('y-axis-dropdown', 'value'),
         State('start-row', 'value'),
@@ -67,8 +67,7 @@ def register_graph_callbacks():
 
         info = f"Aktualnie wybrane wartości: {x_col}, {y_col}, Wiersze: {start_row}-{end_row}"
 
-        #df = pd.DataFrame(data_table)
-        df = pd.read_json(StringIO(data_table))
+        df = pd.DataFrame(data_table)
         filtered_df = df.iloc[start_row:end_row + 1]
 
         fig = px.line(filtered_df, x=x_col, y=y_col)

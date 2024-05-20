@@ -42,7 +42,7 @@ def register_1d_stats_callbacks():
         Output('show_current_1d_val', 'children'),
         Output('stats-container', 'children'),
         Input('1d-dropdown', 'value'),
-        State('stored-dataframe', 'data'),
+        State('data-table', 'data'),
         State('stored-dtypes', 'data'),
         prevent_initial_call=True
     )
@@ -52,7 +52,7 @@ def register_1d_stats_callbacks():
         if dtypes[col] != 'int64' and dtypes[col] != 'float64':
             raise PreventUpdate
         info = f"Aktualnie wybrana wartość: {col}"
-        df = pd.read_json(StringIO(data))
+        df = pd.DataFrame(data)
         values = df[col]
 
         labels = ["Liczba pustycz wartości:", "Mediana:", "Średnia:", "Odchylenie standardowe:", "Wariancja:", "Rozstęp:", "Skośność/asymetria rozkładu:"]
@@ -71,7 +71,7 @@ def register_1d_stats_callbacks():
     @callback(
         Output('tables-container', 'children'),
         Input('1d-dropdown', 'value'),
-        State('stored-dataframe', 'data'),
+        State('data-table', 'data'),
         State('stored-dtypes', 'data'),
         prevent_initial_call=True
     )
@@ -81,7 +81,7 @@ def register_1d_stats_callbacks():
         if dtypes[col] != 'int64' and dtypes[col] != 'float64':
             raise PreventUpdate
 
-        df = pd.read_json(StringIO(data))
+        df = pd.DataFrame(data)
         values = df[col]
 
         unique_values = np.sort(unique_1d(values))
