@@ -30,8 +30,7 @@ def register_input_callbacks():
                     'margin': '10px'
                 },
             ),
-            html.Div(id='error'),
-            dcc.Store(id='dataframe')
+            html.Div(id='error')
         ])
 
     @callback(
