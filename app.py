@@ -2,8 +2,8 @@ from dash import Dash, html, dcc
 
 from eda.file_input.file_input import register_input_callbacks
 from eda.data_table.data_table import register_dataframe_callbacks
-from eda.statistics_1d_numeric.graph import register_graph_callbacks
-from eda.statistics_1d_numeric.statistics import register_1d_stats_callbacks
+from eda.components.graph import register_graph_callbacks
+from eda.components.statistics import register_1d_stats_callbacks
 
 app = Dash(__name__, suppress_callback_exceptions=True)
 
