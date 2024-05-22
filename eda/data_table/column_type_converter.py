@@ -1,7 +1,19 @@
 import pandas as pd
+import re
 
+def convert_matching_column_to_float(df, column):
+    pattern = re.compile(r'^\d+(,\d+)?$')
+    
+    def can_convert(x):
+        if x is None:
+            return True  # Skip None values
+        return bool(pattern.match(str(x)))
+    
+    if df[column].apply(can_convert).all():
+        df[column] = df[column].apply(lambda x: float(str(x).replace(',', '.')) if x is not None else None)
+    return df
 
-def covert_column_data_type(df, col, dtype):
+def convert_column_data_type(df, col, dtype):
     if dtype == 'object':
         df[col] = df[col].astype(str)
     elif dtype == 'int64':
