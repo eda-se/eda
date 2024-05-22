@@ -18,8 +18,10 @@ def register_dataframe_callbacks():
             dcc.Store(id='stored-dataframe', data=df.to_json(date_format='iso')),
             dcc.Store(id='stored-dtypes', data=df.dtypes.astype(str).to_dict()),
 
+            html.H2("Zaimportowany plik CSV"),
             dash_table.DataTable(id='data-table', data=df.to_dict('records'), page_size=15),
 
+            html.H2("Edytor zmiennych"),
             html.Div(id='dropdown-container'),
 
             html.Button('Zapisz zmiany', id='save', n_clicks=0),
