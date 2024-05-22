@@ -15,7 +15,7 @@ def register_1d_stats_callbacks():
         df = pd.read_json(StringIO(df_json))
 
         return html.Div(id="stats-1d", children=[
-            html.H1("Statystki opisowe 1D", style={'fontSize': '36px'}),
+            html.H2("Statystki opisowe 1D"),
             html.Div(id='stats-1d__dropdown'),
             html.Div(id='stats-1d__selected-variable'),
             html.Div(id='stats-1d__summary'),

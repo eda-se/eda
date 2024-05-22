@@ -16,7 +16,7 @@ def register_graph_callbacks():
         df = pd.read_json(StringIO(df_json))
 
         return html.Div([
-            html.H1("Generacja grafu", style={'fontSize': '36px'}),
+            html.H2("Wizualizacja danych"),
             html.Div(id='dropdowns_2d'),
             html.Div(id='current_chosen'),
             html.Div([
@@ -72,6 +72,3 @@ def register_graph_callbacks():
 
         fig = px.line(filtered_df, x=x_col, y=y_col)
         return info, fig
-
-
-

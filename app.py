@@ -5,9 +5,10 @@ from eda.data_table.data_table import register_dataframe_callbacks
 from eda.components.graph import register_graph_callbacks
 from eda.components.statistics import register_1d_stats_callbacks
 
-app = Dash(__name__, suppress_callback_exceptions=True)
+app = Dash(__name__, title="EDA", suppress_callback_exceptions=True)
 
-app.layout = html.Div([
+app.layout = html.Div(id="main", children=[
+    html.H1("EDA"),
     html.Div(id='output'),
     html.Div(style={'height': '40px'}),
     html.Div(id='statistic_output'),

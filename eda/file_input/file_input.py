@@ -15,7 +15,8 @@ def register_input_callbacks():
         return html.Div([
             dcc.Upload(
                 id='upload-data',
-                children=html.Div([
+                className="file-dropdown",
+                children=html.Div(children=[
                     'Przeciągnij i upuść lub ',
                     html.A('wybierz plik')
                 ]),
@@ -23,10 +24,6 @@ def register_input_callbacks():
                     'width': '50%',
                     'height': '60px',
                     'lineHeight': '60px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'dashed',
-                    'borderRadius': '5px',
-                    'textAlign': 'center',
                     'margin': '10px'
                 },
             ),
