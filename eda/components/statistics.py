@@ -124,46 +124,28 @@ def register_1d_stats_callbacks():
 
         if dtypes[col] == 'int64' or dtypes[col] == 'float64':
             return numeric_tables(values)
-        else:
-            return categorical_tables(values)
+        return categorical_tables(values)
 
     def numeric_tables(values):
-        unique_values = np.sort(unique_1d(values))
-        count_values = count_1d(values).sort_values(ascending=False)
-        proportion_values = proportion_1d(values).sort_values(ascending=False)
         mode_values = mode_1d(values)
-        quantiles_values = quantiles_1d(values, [0.25, 0.5, 0.75])
+        mode_occurrences = values[values == mode_values[0]].count()
+        mode_paragraph_content = "Liczba wystąpień poniższej wartości: "
+        if mode_values.size > 1:
+            mode_paragraph_content = "Liczba wystąpień poniższej wartości: "
+        mode_paragraph_content += f"{mode_occurrences}."
 
         return [
             html.Div([
-                html.H4('Unikalne wartości'),
+                html.H4("Moda"),
+                html.P(mode_paragraph_content),
                 dash_table.DataTable(
-                    data=[{'Unikalne wartości': v} for v in unique_values],
-                    columns=[{'name': 'Unikalne wartości', 'id': 'Unikalne wartości'}],
-                    page_size=10
-                )
-            ]),
-            html.Div([
-                html.H4('Liczebność wartości'),
-                dash_table.DataTable(
-                    data=[{'Wartość': key, 'Liczebność': value} for key, value in count_values.items()],
-                    columns=[{'name': 'Wartość', 'id': 'Wartość'}, {'name': 'Liczebność', 'id': 'Liczebność'}],
-                    page_size=10
-                )
-            ]),
-            html.Div([
-                html.H4('Proporcje wartości'),
-                dash_table.DataTable(
-                    data=[{'Wartość': key, 'Proporcja': value} for key, value in proportion_values.items()],
-                    columns=[{'name': 'Wartość', 'id': 'Wartość'}, {'name': 'Proporcja', 'id': 'Proporcja'}],
-                    page_size=10
-                )
-            ]),
-            html.Div([
-                html.H4('Kwantyle'),
-                dash_table.DataTable(
-                    data=[{'index': key, 'val': value} for key, value in quantiles_values.items()],
-                    columns=[{'name': 'Kwantyl', 'id': 'index'}, {'name': 'Wartość kwantylu', 'id': 'val'}]
+                    data=[
+                        {"value": value}
+                        for value in mode_values
+                    ],
+                    columns=[
+                        {"name": 'Wartość zmiennej', "id": "value"},
+                    ]
                 )
             ])
         ]
