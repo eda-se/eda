@@ -21,3 +21,14 @@ body {
 .file-dropdown:hover {
   background-color: #f3f3f3;
 }
+
+.stats__paragraph {
+  margin: 0;
+  padding: .125rem;
+}
+
+.stats__value {
+  display: inline-block;
+  margin: 0;
+  margin-left: 1rem;
+}

@@ -77,6 +77,7 @@ def register_1d_stats_callbacks():
             range_1d(values),
             skewness_1d(values)
         ]
+        quantile_values = quantiles_1d(values, [0.25, 0.5, 0.75])
 
         stats = [
             html.Div([
@@ -84,6 +85,23 @@ def register_1d_stats_callbacks():
                 html.Pre(function)
             ])
             for label, function in zip(labels, functions)
+        ]
+        stats += [
+            html.Div([
+                html.H3("Kwantyle"),
+                html.P(className="stats__paragraph", children=[
+                    "¼",
+                    html.Pre(quantile_values[0.25], className="stats__value"),
+                ]),
+                html.P(className="stats__paragraph", children=[
+                    "½",
+                    html.Pre(quantile_values[0.5], className="stats__value"),
+                ]),
+                html.P(className="stats__paragraph", children=[
+                    "¾",
+                    html.Pre(quantile_values[0.75], className="stats__value"),
+                ]),
+            ])
         ]
 
         return stats
