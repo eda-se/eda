@@ -108,11 +108,9 @@ def register_1d_stats_callbacks():
 
     def categorical_stats(values):
         labels = [
-            "Moda",
             "Liczba wartości brakujących",
         ]
         functions = [
-            mode_1d(values),
             na_count_1d(values),
         ]
 
@@ -172,7 +170,6 @@ def register_1d_stats_callbacks():
         unique_values = np.sort(unique_1d(values))
         count_values = count_1d(values).sort_values(ascending=False)
         proportion_values = proportion_1d(values).sort_values(ascending=False)
-        mode_values = mode_1d(values)
 
         return [
             html.Div([
@@ -216,17 +213,4 @@ def register_1d_stats_callbacks():
                     page_size=10
                 )
             ]),
-            html.Div([
-                html.H4("Mody"),
-                dash_table.DataTable(
-                    data=[
-                        {"key": key, "value": value}
-                        for key, value in mode_values.items()
-                    ],
-                    columns=[
-                        {"name": "Moda", "id": "key"},
-                        {"name": "Kategoria", "id": "value"}
-                    ]
-                )
-            ])
         ]
