@@ -2,7 +2,9 @@ from io import StringIO
 
 from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
+
 from eda.destats import *
+from eda.data_table.column_type import is_number_type
 
 
 def register_1d_stats_callbacks():
@@ -53,7 +55,7 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
         values = df[col]
 
-        if dtypes[col] == 'int64' or dtypes[col] == 'float64':
+        if is_number_type(dtypes[col]):
             return info, numeric_stats(values)
         else:
             return info, categorical_stats(values)
@@ -122,7 +124,7 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
         values = df[col]
 
-        if dtypes[col] == 'int64' or dtypes[col] == 'float64':
+        if is_number_type(dtypes[col]):
             return numeric_tables(values)
         else:
             return categorical_tables(values)
