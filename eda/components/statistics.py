@@ -1,13 +1,19 @@
+import math
 from io import StringIO
 
 from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
+import dash_ag_grid as dag
 
 from eda.destats import *
 from eda.data_table.column_type import is_number_type
 
 
 def register_1d_stats_callbacks():
+    MAX_ROWS = 15
+    ROW_HEIGHT = 42
+    HEADER_ROW_HEIGHT = 49
+
     @callback(
         Output('statistic_output', 'children', allow_duplicate=True),
         Input('dataframe', 'data'),
@@ -18,10 +24,10 @@ def register_1d_stats_callbacks():
 
         return html.Div(id="stats-1d", children=[
             html.H2("Statystki opisowe 1D"),
-            html.Div(id='stats-1d__dropdown'),
-            html.Div(id='stats-1d__selected-variable'),
-            html.Div(id='stats-1d__summary'),
-            html.Div(id='stats-1d__details', style={'width': '30%', 'display': 'inline-block'}),
+            html.Div(id="stats-1d__dropdown"),
+            html.Div(id="stats-1d__selected-variable"),
+            html.Div(id="stats-1d__summary"),
+            html.Div(id="stats-1d__details"),
         ])
 
     @callback(
@@ -146,73 +152,81 @@ def register_1d_stats_callbacks():
 
     def numeric_tables(values):
         mode_values = mode_1d(values)
+        values_df = pd.DataFrame(
+            data={
+                "numeric": mode_values.index,
+            },
+        )
+
         mode_occurrences = values[values == mode_values[0]].count()
         mode_paragraph_content = "Liczba wystąpień poniższej wartości: "
         if mode_values.size > 1:
             mode_paragraph_content = "Liczba wystąpień poniższej wartości: "
         mode_paragraph_content += f"{mode_occurrences}."
 
-        return [
-            html.Div([
-                html.H4("Moda"),
-                html.P(mode_paragraph_content),
-                dash_table.DataTable(
-                    data=[
-                        {"value": value}
-                        for value in mode_values
-                    ],
-                    columns=[
-                        {"name": 'Wartość zmiennej', "id": "value"},
-                    ]
-                )
-            ])
-        ]
+        numeric_column_name = "Zmienna numeryczna"
+
+        return html.Div(children=[
+            html.H4("Moda"),
+            html.P(mode_paragraph_content),
+            dag.AgGrid(
+                id="stats-1d-numeric-table",
+                rowData=values_df.to_dict("records"),
+                columnDefs=[
+                    {
+                        "field": "numeric",
+                        "headerName": numeric_column_name,
+                    },
+                ],
+                style={
+                    "height": min(values_df.shape[0], MAX_ROWS) * ROW_HEIGHT
+                        + HEADER_ROW_HEIGHT + 2,
+                    "overflow": "hidden"
+                        if values_df.shape[0] <= MAX_ROWS
+                        else "auto"
+                }
+            ),
+        ])
 
     def categorical_tables(values):
-        unique_values = np.sort(unique_1d(values))
-        count_values = count_1d(values).sort_values(ascending=False)
-        proportion_values = proportion_1d(values).sort_values(ascending=False)
+        count_values = count_1d(values)
+        frequency_values = (100 * proportion_1d(values)).round(decimals=1)
+        values_df = pd.DataFrame(
+            data={
+                "categorical": count_values.index,
+                "count": count_values,
+                "frequency": frequency_values,
+            },
+        )
 
-        return [
-            html.Div([
-                html.H4("Unikalne wartości"),
-                dash_table.DataTable(
-                    data=[
-                        {"Unikalne wartości": v}
-                        for v in unique_values
-                    ],
-                    columns=[
-                        {"name": "Unikalne wartości", "id": "Unikalne wartości"}
-                    ],
-                    page_size=10
-                )
-            ]),
-            html.Div([
-                html.H4("Liczność"),
-                dash_table.DataTable(
-                    data=[
-                        {"Wartość": key, "Liczebność": value}
-                        for key, value in count_values.items()
-                    ],
-                    columns=[
-                        {"name": "Wartość", "id": "Wartość"},
-                        {"name": "Liczebność", "id": "Liczebność"}
-                    ],
-                    page_size=10
-                )
-            ]),
-            html.Div([
-                html.H4("Proporcja"),
-                dash_table.DataTable(
-                    data=[
-                        {"Wartość": key, "Proporcja": value}
-                        for key, value in proportion_values.items()
-                    ],
-                    columns=[
-                        {"name": "Wartość", "id": "Wartość"},
-                        {"name": "Proporcja", "id": "Proporcja"}
-                    ],
-                    page_size=10
-                )
-            ]),
-        ]
+        categorical_column_name = "Zmienna kategoryczna"
+        count_column_name = "Liczebność"
+        frequency_column_name = "Częstotliwość [%]"
+
+        return dag.AgGrid(
+            id="stats-1d-categorical-table",
+            rowData=values_df.to_dict("records"),
+            columnDefs=[
+                {
+                    "field": "categorical",
+                    "headerName": categorical_column_name,
+                },
+                {
+                    "field": "count",
+                    "headerName": count_column_name,
+                    "filter": True,
+                },
+                {
+                    "field": "frequency",
+                    "headerName": frequency_column_name,
+                    "filter": True,
+                },
+            ],
+            style={
+                "height": min(values_df.shape[0], MAX_ROWS) * ROW_HEIGHT
+                    + HEADER_ROW_HEIGHT + 2,
+                "overflow": "hidden"
+                    if values_df.shape[0] <= MAX_ROWS
+                    else "auto"
+            }
+        )

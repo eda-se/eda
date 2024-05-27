@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 dash = "~=2.17.0"
 pandas = "~=2.2.2"
+dash-ag-grid = "~=31.2.0"
 
 [dev-packages]
 
