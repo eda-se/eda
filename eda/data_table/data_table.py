@@ -14,9 +14,9 @@ from dash import (
 )
 
 from eda.data_table.column_type import (
+    column_info,
+    convert_numeric_strings_to_numbers,
     convert_column_data_type,
-    is_int_column,
-    is_float_column,
 )
 
 
@@ -29,12 +29,7 @@ def register_dataframe_callbacks():
     def render(df_json: str):
         df = pd.read_json(StringIO(df_json))
 
-        for name, values in df.items():
-            if values.dtype == "object" or values.dtype == "float64":
-                if is_int_column(values):
-                    convert_column_data_type(df, name, "int64")
-                elif is_float_column(values):
-                    convert_column_data_type(df, name, "float64")
+        convert_numeric_strings_to_numbers(df)
 
         string_dtypes = df.dtypes.astype(str).str.lower()
         json_dataframe = df.to_json(date_format="iso")
@@ -91,11 +86,11 @@ def register_dataframe_callbacks():
                     dcc.Dropdown(
                         id={'type-dropdown': column_name},
                         options=[
-                            {'label': 'String', 'value': 'object'},
-                            {'label': 'Integer', 'value': 'int64'},
-                            {'label': 'Float', 'value': 'float64'},
-                            {'label': 'Datetime', 'value': 'datetime64'},
-                            {'label': 'Categorical', 'value': 'category'},
+                            {
+                                "label": cinfo.name,
+                                "value": cinfo.type
+                            }
+                            for cinfo in column_info
                         ],
                         value=column_type
                     )
