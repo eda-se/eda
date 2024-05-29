@@ -1,6 +1,3 @@
-import math
-from io import StringIO
-
 from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
 import dash_ag_grid as dag
@@ -94,39 +91,3 @@ def register_2d_stats_callbacks():
 
         return stats
 
-    @callback(
-        Output('stats-2d__tables', 'children'),
-        [Input('2d-dropdown1', 'value'),
-         Input('2d-dropdown2', 'value')],
-        State('data-table', 'data'),
-        State('stored-dtypes', 'data'),
-        prevent_initial_call=True
-    )
-    def generate_tables(x, y, data, dtypes):
-        if data is None or x is None or y is None:
-            raise PreventUpdate
-
-        df = pd.DataFrame(data)
-
-        if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
-            return html.Div([dcc.Markdown(numeric_tables(df, x, y))])
-        return no_update
-
-    def numeric_tables(data, x, y):
-        new_data = data.loc[:, [x, y]]
-        new_data.columns = [x, y]
-        result = [
-            anova_analysis(data, f"{y} ~ {x}"),
-            ancova_analysis(data, f"{y} ~ {x}"),
-            cluster_analysis(new_data, 2),
-        ]
-        df = pd.DataFrame(result)
-        return dash_table.DataTable(
-            id="numeric-tables",
-            columns=[
-                {"name": col, "id": col, "deletable": True, "renamable": True}
-                for col in df.columns.tolist()
-            ],
-            data=df.to_dict("records"),
-            page_size=15,
-        )

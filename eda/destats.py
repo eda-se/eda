@@ -7,6 +7,7 @@ from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
 from sklearn.cluster import KMeans
 
+
 def unique_1d(values: pd.Series) -> np.ndarray:
     return values.unique()
 
@@ -93,30 +94,25 @@ def correlation_coefficient(x: pd.Series, y: pd.Series) -> float:
     return x.corr(y)
 
 
-def anova_analysis(data: pd.DataFrame, formula: str) -> dict:
+def anova_analysis(data: pd.DataFrame, formula: str) -> pd.DataFrame:
     model = ols(formula, data).fit()
     anova_results = anova_lm(model)
-    return {
-        "Metoda": "ANOVA",
-        "Wyniki": anova_results.to_dict()
-    }
+    return anova_results
 
 
-def ancova_analysis(data: pd.DataFrame, formula: str) -> dict:
+def ancova_analysis(data: pd.DataFrame, formula: str) -> pd.DataFrame:
     model = ols(formula, data).fit()
     anova_results = anova_lm(model, typ=2)
-    return {
-        "Metoda": "ANCOVA",
-        "Wyniki": anova_results.to_dict()
-    }
+    return anova_results
 
 
-def cluster_analysis(data: pd.DataFrame, n_clusters: int) -> dict:
+def linear_regression_analysis(x: pd.Series, y: pd.Series) -> pd.Series:
+    x_reshaped = x.values.reshape(-1, 1)
+    model = LinearRegression().fit(x_reshaped, y)
+    return pd.Series(model.predict(x_reshaped))
+
+
+def cluster_analysis(data: pd.DataFrame, n_clusters: int) -> pd.Series:
     model = KMeans(n_clusters=n_clusters)
     clusters = model.fit_predict(data)
-    return {
-        "Metoda": "Analiza skupień",
-        "Wyniki": {
-            "Klasyfikacja": clusters.tolist(),
-        }
-    }
+    return pd.Series(clusters)
