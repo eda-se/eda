@@ -57,38 +57,51 @@ def skewness_1d(values: pd.Series) -> float:
 
 
 # 2D
-def clean_columns(x, y):
+def clean_columns(x: pd.Series, y: pd.Series) -> tuple[pd.Series, pd.Series]:
     mask = ~np.isnan(x) & ~np.isnan(y) & ~np.isinf(x) & ~np.isinf(y)
     return x[mask], y[mask]
+
 
 def pearson_correlation(x: pd.Series, y: pd.Series) -> float:
     return pearsonr(x, y)[0]
 
+
 def spearman_correlation(x: pd.Series, y: pd.Series) -> float:
     return spearmanr(x, y)[0]
+
 
 def coefficient_of_determination(x: pd.Series, y: pd.Series) -> float:
     x_reshaped = x.values.reshape(-1, 1)
     model = LinearRegression().fit(x_reshaped, y)
     return model.score(x_reshaped, y)
 
-def linear_regression(x: pd.Series, y: pd.Series) -> str:
+
+def linear_regression(x: pd.Series, y: pd.Series) -> dict:
     x_reshaped = x.values.reshape(-1, 1)
     model = LinearRegression().fit(x_reshaped, y)
     intercept = model.intercept_
     slope = model.coef_[0]
-    return f"""Intercept: {intercept}
-Współczynnik nachylenia: {slope}
-Równanie: y = {intercept} + {slope}x"""
+    return {"Intercept": intercept, "Współczynnik nachylenia": slope} #"Równanie x": {intercept} + {slope}x}
 
 
-def confidence_interval(x: pd.Series, y: pd.Series, alpha=0.05) -> str:
+def confidence_interval(x: pd.Series, y: pd.Series, alpha=0.05) -> dict:
     x_with_const = sm.add_constant(x)
     model = sm.OLS(y, x_with_const).fit()
     conf = model.conf_int(alpha)
-    return f"""Przedział ufności dla interceptu: {conf.loc["const"].tolist()}
-Przedział ufności dla współczynnika nachylenia: {conf.loc[x.name].tolist()}"""
+    return {"Przedział ufności dla interceptu": conf.loc["const"].tolist(), "Przedział ufności dla współczynnika nachylenia": conf.loc[x.name].tolist()}
 
+def calculate_confidence_intervals(X, y, confidence=0.95):
+    # Dodanie stałej do modelu (kolumna jedynek dla wyrazu wolnego)
+    X_with_const = sm.add_constant(X)
+
+    # Dopasowanie modelu regresji liniowej za pomocą statsmodels
+    model = sm.OLS(y, X_with_const).fit()
+
+    # Obliczanie przedziałów ufności dla parametrów modelu
+    conf = model.conf_int(alpha=1 - confidence)
+    confidence_intervals = {f'beta_{i}': (conf[i][0], conf[i][1]) for i in range(len(conf))}
+
+    return confidence_intervals
 
 def correlation_coefficient(x: pd.Series, y: pd.Series) -> float:
     return x.corr(y)

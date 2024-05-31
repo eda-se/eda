@@ -7,14 +7,12 @@ from eda.data_table.column_type import is_number_type
 
 
 def register_2d_stats_callbacks():
-
     @callback(
         Output('statistic_2d_output', 'children', allow_duplicate=True),
         Input('dataframe', 'data'),
         prevent_initial_call=True
     )
     def render(df_json: str):
-
         return html.Div(id="stats-2d", children=[
             html.H2("Statystki opisowe 2D"),
             html.Div(id="stats-2d__dropdown"),
@@ -44,8 +42,8 @@ def register_2d_stats_callbacks():
     @callback(
         Output('stats-2d__selected-variable', 'children'),
         Output('stats-2d__summary', 'children'),
-        [Input('2d-dropdown1', 'value'),
-         Input('2d-dropdown2', 'value')],
+        Input('2d-dropdown1', 'value'),
+        Input('2d-dropdown2', 'value'),
         State('data-table', 'data'),
         State('stored-dtypes', 'data'),
         prevent_initial_call=True
@@ -67,27 +65,36 @@ def register_2d_stats_callbacks():
             "Korelacja Pearsona",
             "Korelacja Spearmana",
             "Współczynnik determinacji",
+            "Współczynnik korelacji",
             "Regresja liniowa",
             "Obszar ufności",
-            "Współczynnik korelacji",
         ]
         x, y = clean_columns(data[x], data[y])
         functions = [
             pearson_correlation(x, y),
             spearman_correlation(x, y),
             coefficient_of_determination(x, y),
+            correlation_coefficient(x, y),
             linear_regression(x, y),
             confidence_interval(x, y),
-            correlation_coefficient(x, y),
         ]
+        stats = []
 
-        stats = [
-            html.Div([
-                html.H3(label + ":"),
-                html.Pre(function)
-            ])
-            for label, function in zip(labels, functions)
-        ]
+        for label, function in zip(labels, functions):
+            if isinstance(function, dict):
+                result_dict = function
+                stats.append(html.Div([
+                    html.H3(label + ":"),
+                ]))
+                for key, value in result_dict.items():
+                    stats.append(html.Div([
+                        f"{key}: {value}",
+                    ]))
+            else:
+                stats.append(html.Div([
+                    html.H3(label + ":"),
+                    html.Pre(function)
+                ]))
 
         return stats
 
