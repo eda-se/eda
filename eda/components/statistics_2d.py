@@ -84,12 +84,12 @@ def register_2d_stats_callbacks():
         ]
 
         def linear_regression_wrapper(result_dict):
-            return [html.Div([html.H3("Regresja liniowa" + ":")]),
+            return [html.Div([html.H3("Regresja liniowa:")]),
                     html.Div([f"Intercept: {result_dict.get('intercept')}"]),
                     html.Div([f"Współczynnik nachylenia: {result_dict.get('slope')}"])]
 
         def confidence_regression_wrapper(result_dict):
-            return [html.Div([html.H3("" + ":")]),
+            return [html.Div([html.H3("Przedział ufności:")]),
                     html.Div([f"Przedział ufności dla interceptu: {result_dict.get('intercept')}"]),
                     html.Div([f"Przedział ufności dla współczynnika nachylenia: {result_dict.get('slope')}"])]
 
