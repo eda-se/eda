@@ -66,8 +66,6 @@ def register_2d_stats_callbacks():
             "Korelacja Spearmana",
             "Współczynnik determinacji",
             "Współczynnik korelacji",
-            "Regresja liniowa",
-            "Obszar ufności",
         ]
         x, y = clean_columns(data[x], data[y])
         functions = [
@@ -75,26 +73,30 @@ def register_2d_stats_callbacks():
             spearman_correlation(x, y),
             coefficient_of_determination(x, y),
             correlation_coefficient(x, y),
-            linear_regression(x, y),
-            confidence_interval(x, y),
         ]
-        stats = []
 
-        for label, function in zip(labels, functions):
-            if isinstance(function, dict):
-                result_dict = function
-                stats.append(html.Div([
-                    html.H3(label + ":"),
-                ]))
-                for key, value in result_dict.items():
-                    stats.append(html.Div([
-                        f"{key}: {value}",
-                    ]))
-            else:
-                stats.append(html.Div([
-                    html.H3(label + ":"),
-                    html.Pre(function)
-                ]))
+        stats = [
+            html.Div([
+                html.H3(label + ":"),
+                html.Pre(function)
+            ])
+            for label, function in zip(labels, functions)
+        ]
+
+        def linear_regression_wrapper(result_dict):
+            return [html.Div([html.H3("Regresja liniowa" + ":")]),
+                    html.Div([f"Intercept: {result_dict.get('intercept')}"]),
+                    html.Div([f"Współczynnik nachylenia: {result_dict.get('slope')}"])]
+
+        def confidence_regression_wrapper(result_dict):
+            return [html.Div([html.H3("Regresja liniowa" + ":")]),
+                    html.Div([f"Intercept: {result_dict.get('intercept')}"]),
+                    html.Div([f"Współczynnik nachylenia: {result_dict.get('slope')}"])]
+
+        result = linear_regression(x, y)
+        stats.extend(linear_regression_wrapper(result))
+        result = confidence_interval(x, y)
+        stats.extend(confidence_regression_wrapper(result))
 
         return stats
 

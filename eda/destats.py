@@ -81,27 +81,15 @@ def linear_regression(x: pd.Series, y: pd.Series) -> dict:
     model = LinearRegression().fit(x_reshaped, y)
     intercept = model.intercept_
     slope = model.coef_[0]
-    return {"Intercept": intercept, "Współczynnik nachylenia": slope} #"Równanie x": {intercept} + {slope}x}
+    return {"intercept": intercept, "slope": slope}
 
 
 def confidence_interval(x: pd.Series, y: pd.Series, alpha=0.05) -> dict:
     x_with_const = sm.add_constant(x)
     model = sm.OLS(y, x_with_const).fit()
     conf = model.conf_int(alpha)
-    return {"Przedział ufności dla interceptu": conf.loc["const"].tolist(), "Przedział ufności dla współczynnika nachylenia": conf.loc[x.name].tolist()}
+    return {"intercept": conf.loc["const"].tolist(), "slope": conf.loc[x.name].tolist()}
 
-def calculate_confidence_intervals(X, y, confidence=0.95):
-    # Dodanie stałej do modelu (kolumna jedynek dla wyrazu wolnego)
-    X_with_const = sm.add_constant(X)
-
-    # Dopasowanie modelu regresji liniowej za pomocą statsmodels
-    model = sm.OLS(y, X_with_const).fit()
-
-    # Obliczanie przedziałów ufności dla parametrów modelu
-    conf = model.conf_int(alpha=1 - confidence)
-    confidence_intervals = {f'beta_{i}': (conf[i][0], conf[i][1]) for i in range(len(conf))}
-
-    return confidence_intervals
 
 def correlation_coefficient(x: pd.Series, y: pd.Series) -> float:
     return x.corr(y)
