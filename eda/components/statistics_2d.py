@@ -89,9 +89,9 @@ def register_2d_stats_callbacks():
                     html.Div([f"Współczynnik nachylenia: {result_dict.get('slope')}"])]
 
         def confidence_regression_wrapper(result_dict):
-            return [html.Div([html.H3("Regresja liniowa" + ":")]),
-                    html.Div([f"Intercept: {result_dict.get('intercept')}"]),
-                    html.Div([f"Współczynnik nachylenia: {result_dict.get('slope')}"])]
+            return [html.Div([html.H3("" + ":")]),
+                    html.Div([f"Przedział ufności dla interceptu: {result_dict.get('intercept')}"]),
+                    html.Div([f"Przedział ufności dla współczynnika nachylenia: {result_dict.get('slope')}"])]
 
         result = linear_regression(x, y)
         stats.extend(linear_regression_wrapper(result))
