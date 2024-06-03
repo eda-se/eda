@@ -1,4 +1,3 @@
-import math
 from io import StringIO
 
 from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
@@ -52,6 +51,7 @@ def register_1d_stats_callbacks():
         Output('stats-1d__selected-variable', 'children'),
         Output('stats-1d__summary', 'children'),
         Output('stats-1d__categorical-chart', 'children'),
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
         Input('1d-dropdown', 'value'),
         State('data-table', 'data'),
         State('stored-dtypes', 'data'),
@@ -66,9 +66,9 @@ def register_1d_stats_callbacks():
         values = df[col]
 
         if is_number_type(dtypes[col]):
-            return info, numeric_stats(values), no_update
+            return info, numeric_stats(values), None, None
         else:
-            return info, categorical_stats(values), html.Button('Wygeneruj wykres słupkowy', id="make-categorical-chart")
+            return info, categorical_stats(values), html.Button('Wygeneruj wykres słupkowy', id="make-categorical-chart"), None
 
     def numeric_stats(values):
         labels = [
