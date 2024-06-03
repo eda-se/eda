@@ -66,7 +66,7 @@ def register_1d_stats_callbacks():
         values = df[col]
 
         if is_number_type(dtypes[col]):
-            return info, numeric_stats(values), None, None
+            return info, numeric_stats(values), html.Button('Wygeneruj wykres słupkowy', id="make-categorical-chart"), None
         else:
             return info, categorical_stats(values), html.Button('Wygeneruj wykres słupkowy', id="make-categorical-chart"), None
 
@@ -250,9 +250,9 @@ def register_1d_stats_callbacks():
         values = df[column]
 
         value_counts = values.value_counts().reset_index()
-        value_counts.columns = ['Value', 'Count']
+        value_counts.columns = ['Wartość', 'Liczba wystąpień']
 
-        fig = px.bar(value_counts, x='Value', y='Count',
+        fig = px.bar(value_counts, x='Wartość', y='Liczba wystąpień',
                      title=f'Liczba wystąpień każdej unikalnej wartości dla {column}')
 
         return dcc.Graph(figure=fig)
