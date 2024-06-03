@@ -65,12 +65,18 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
         values = df[col]
 
-        buttons = [html.Button('słupkowy', id="make-bar-chart")]
         if is_number_type(dtypes[col]):
-            buttons.append(html.Button('pudełkowy', id="make-box-chart"))
+            buttons = [
+                html.Button('histogram', id="make-histogram-chart"),
+                html.Button('pudełkowy', id="make-box-chart"),
+                html.Button('skrzypcowy', id="make-violin-chart")
+            ]
             return info, numeric_stats(values), ["Wygeneruj wykres: "] + buttons, None
         else:
-            buttons.append(html.Button('kołowy', id="make-pie-chart"))
+            buttons = [
+                html.Button('słupkowy', id="make-bar-chart"),
+                html.Button('kołowy', id="make-pie-chart")
+            ]
             return info, categorical_stats(values), ["Wygeneruj wykres: "] + buttons, None
 
     def numeric_stats(values):
@@ -240,6 +246,28 @@ def register_1d_stats_callbacks():
 
     @callback(
         Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-histogram-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def histogram_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+        values = df[column]
+
+        value_counts = values.value_counts().reset_index()
+        value_counts.columns = ['Wartość', 'Liczba wystąpień']
+
+        fig = px.bar(value_counts, x='Wartość', y='Liczba wystąpień',
+                     title=f'Liczba wystąpień każdej unikalnej wartości dla {column}')
+
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
         Input("make-bar-chart", "n_clicks_timestamp"),
         State('1d-dropdown', 'value'),
         State('data-table', 'data'),
@@ -254,6 +282,10 @@ def register_1d_stats_callbacks():
 
         value_counts = values.value_counts().reset_index()
         value_counts.columns = ['Wartość', 'Liczba wystąpień']
+        value_counts['Wartość'] = value_counts['Wartość'].astype(str)
+
+        # Sortowanie wartości malejąco według liczby wystąpień
+        value_counts = value_counts.sort_values(by='Liczba wystąpień', ascending=False)
 
         fig = px.bar(value_counts, x='Wartość', y='Liczba wystąpień',
                      title=f'Liczba wystąpień każdej unikalnej wartości dla {column}')
@@ -295,5 +327,21 @@ def register_1d_stats_callbacks():
 
         df = pd.DataFrame(data)
         fig = px.box(df, y=column, title=f'Wykres pudełkowy dla kolumny {column}')
+
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-violin-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def violin_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+        fig = px.violin(df, y=column, title=f'Wykres skrzypcowy dla kolumny {column}')
 
         return dcc.Graph(figure=fig)
