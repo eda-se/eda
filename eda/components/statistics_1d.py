@@ -65,13 +65,13 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
         values = df[col]
 
-        buttons = [html.Button('Wygeneruj wykres słupkowy', id="make-bar-chart")]
+        buttons = [html.Button('słupkowy', id="make-bar-chart")]
         if is_number_type(dtypes[col]):
-            buttons.append(html.Button('Wygeneruj wykres pudełkowy', id="make-box-chart"))
-            return info, numeric_stats(values), buttons, None
+            buttons.append(html.Button('pudełkowy', id="make-box-chart"))
+            return info, numeric_stats(values), ["Wygeneruj wykres: "] + buttons, None
         else:
-            buttons.append(html.Button('Wygeneruj wykres kołowy', id="make-pie-chart"))
-            return info, categorical_stats(values), buttons, None
+            buttons.append(html.Button('kołowy', id="make-pie-chart"))
+            return info, categorical_stats(values), ["Wygeneruj wykres: "] + buttons, None
 
     def numeric_stats(values):
         labels = [
