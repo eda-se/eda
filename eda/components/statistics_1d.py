@@ -65,13 +65,18 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
         values = df[col]
 
-        buttons = [html.Button('Wygeneruj wykres słupkowy', id="make-bar-chart")]
+        buttons = [html.Button('słupkowy', id="make-bar-chart")]
         if is_number_type(dtypes[col]):
-            buttons.append(html.Button('Wygeneruj wykres pudełkowy', id="make-box-chart"))
-            return info, numeric_stats(values), buttons, None
+            buttons.extend([
+                html.Button('pudełkowy', id="make-box-chart"),
+                html.Button('liniowy', id="make-line-chart"),
+                html.Button('punktowy', id="make-scatter-chart"),
+                html.Button('gęstości', id="make-density-chart"),
+            ])
+            return info, numeric_stats(values), ["Wygeneruj wykres: "] + buttons, None
         else:
-            buttons.append(html.Button('Wygeneruj wykres kołowy', id="make-pie-chart"))
-            return info, categorical_stats(values), buttons, None
+            buttons.append(html.Button('kołowy', id="make-pie-chart"))
+            return info, categorical_stats(values), ["Wygeneruj wykres: "] + buttons, None
 
     def numeric_stats(values):
         labels = [
@@ -296,5 +301,53 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
 
         fig = px.box(df, y=column, title=f'Wykres pudełkowy dla kolumny {column}')
+
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-line-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def line_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+        fig = px.line(df, y=column, title=f'Line plot dla kolumny {column}')
+
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-scatter-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def scatter_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+        fig = px.scatter(df, y=column, title=f'Scatter plot dla kolumny {column}')
+
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-density-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def density_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+        fig = px.density_contour(df, y=column, title=f'Density plot dla kolumny {column}')
 
         return dcc.Graph(figure=fig)
