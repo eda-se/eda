@@ -294,7 +294,6 @@ def register_1d_stats_callbacks():
             raise PreventUpdate
 
         df = pd.DataFrame(data)
-
         fig = px.box(df, y=column, title=f'Wykres pudełkowy dla kolumny {column}')
 
         return dcc.Graph(figure=fig)
