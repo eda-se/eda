@@ -4,6 +4,7 @@ from io import StringIO
 from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
 import dash_ag_grid as dag
+import plotly.express as px
 
 from eda.destats import *
 from eda.data_table.column_type import is_number_type
@@ -28,6 +29,8 @@ def register_1d_stats_callbacks():
             html.Div(id="stats-1d__selected-variable"),
             html.Div(id="stats-1d__summary"),
             html.Div(id="stats-1d__details"),
+            html.Div(id="stats-1d__categorical-chart"),
+            html.Div(id="stats-1d__chart"),
         ])
 
     @callback(
@@ -48,6 +51,7 @@ def register_1d_stats_callbacks():
     @callback(
         Output('stats-1d__selected-variable', 'children'),
         Output('stats-1d__summary', 'children'),
+        Output('stats-1d__categorical-chart', 'children'),
         Input('1d-dropdown', 'value'),
         State('data-table', 'data'),
         State('stored-dtypes', 'data'),
@@ -62,9 +66,9 @@ def register_1d_stats_callbacks():
         values = df[col]
 
         if is_number_type(dtypes[col]):
-            return info, numeric_stats(values)
+            return info, numeric_stats(values), no_update
         else:
-            return info, categorical_stats(values)
+            return info, categorical_stats(values), html.Button('Wygeneruj wykres słupkowy', id="make-categorical-chart")
 
     def numeric_stats(values):
         labels = [
@@ -180,10 +184,10 @@ def register_1d_stats_callbacks():
                 ],
                 style={
                     "height": min(values_df.shape[0], MAX_ROWS) * ROW_HEIGHT
-                        + HEADER_ROW_HEIGHT + 2,
+                              + HEADER_ROW_HEIGHT + 2,
                     "overflow": "hidden"
-                        if values_df.shape[0] <= MAX_ROWS
-                        else "auto"
+                    if values_df.shape[0] <= MAX_ROWS
+                    else "auto"
                 }
             ),
         ])
@@ -224,9 +228,31 @@ def register_1d_stats_callbacks():
             ],
             style={
                 "height": min(values_df.shape[0], MAX_ROWS) * ROW_HEIGHT
-                    + HEADER_ROW_HEIGHT + 2,
+                          + HEADER_ROW_HEIGHT + 2,
                 "overflow": "hidden"
-                    if values_df.shape[0] <= MAX_ROWS
-                    else "auto"
+                if values_df.shape[0] <= MAX_ROWS
+                else "auto"
             }
         )
+
+    @callback(
+        Output('stats-1d__chart', 'children'),
+        Input("make-categorical-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def bar_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+        values = df[column]
+
+        value_counts = values.value_counts().reset_index()
+        value_counts.columns = ['Value', 'Count']
+
+        fig = px.bar(value_counts, x='Value', y='Count',
+                     title=f'Liczba wystąpień każdej unikalnej wartości dla {column}')
+
+        return dcc.Graph(figure=fig)
