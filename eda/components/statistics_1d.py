@@ -28,7 +28,7 @@ def register_1d_stats_callbacks():
             html.Div(id="stats-1d__selected-variable"),
             html.Div(id="stats-1d__summary"),
             html.Div(id="stats-1d__details"),
-            html.Div(id="stats-1d__categorical-chart"),
+            html.Div(id="stats-1d__chart-buttons"),
             html.Div(id="stats-1d__chart"),
         ])
 
@@ -50,7 +50,7 @@ def register_1d_stats_callbacks():
     @callback(
         Output('stats-1d__selected-variable', 'children'),
         Output('stats-1d__summary', 'children'),
-        Output('stats-1d__categorical-chart', 'children'),
+        Output('stats-1d__chart-buttons', 'children'),
         Output('stats-1d__chart', 'children', allow_duplicate=True),
         Input('1d-dropdown', 'value'),
         State('data-table', 'data'),
@@ -65,10 +65,13 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
         values = df[col]
 
+        buttons = [html.Button('Wygeneruj wykres słupkowy', id="make-bar-chart")]
         if is_number_type(dtypes[col]):
-            return info, numeric_stats(values), html.Button('Wygeneruj wykres słupkowy', id="make-categorical-chart"), None
+            buttons.append(html.Button('Wygeneruj wykres pudełkowy', id="make-box-chart"))
+            return info, numeric_stats(values), buttons, None
         else:
-            return info, categorical_stats(values), html.Button('Wygeneruj wykres słupkowy', id="make-categorical-chart"), None
+            buttons.append(html.Button('Wygeneruj wykres kołowy', id="make-pie-chart"))
+            return info, categorical_stats(values), buttons, None
 
     def numeric_stats(values):
         labels = [
@@ -236,8 +239,8 @@ def register_1d_stats_callbacks():
         )
 
     @callback(
-        Output('stats-1d__chart', 'children'),
-        Input("make-categorical-chart", "n_clicks_timestamp"),
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-bar-chart", "n_clicks_timestamp"),
         State('1d-dropdown', 'value'),
         State('data-table', 'data'),
         prevent_initial_call=True
@@ -254,5 +257,44 @@ def register_1d_stats_callbacks():
 
         fig = px.bar(value_counts, x='Wartość', y='Liczba wystąpień',
                      title=f'Liczba wystąpień każdej unikalnej wartości dla {column}')
+
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-pie-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def pie_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+        values = df[column]
+
+        value_counts = values.value_counts().reset_index()
+        value_counts.columns = ['Wartość', 'Liczba wystąpień']
+
+        fig = px.pie(value_counts, names='Wartość', values='Liczba wystąpień',
+                     title=f'Procent wystąpień każdej unikalnej wartości dla {column}')
+
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Input("make-box-chart", "n_clicks_timestamp"),
+        State('1d-dropdown', 'value'),
+        State('data-table', 'data'),
+        prevent_initial_call=True
+    )
+    def box_chart(n_click, column, data):
+        if n_click is None or column is None or data is None:
+            raise PreventUpdate
+
+        df = pd.DataFrame(data)
+
+        fig = px.box(df, y=column, title=f'Wykres pudełkowy dla kolumny {column}')
 
         return dcc.Graph(figure=fig)
