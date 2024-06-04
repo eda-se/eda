@@ -256,13 +256,12 @@ def register_1d_stats_callbacks():
             raise PreventUpdate
 
         df = pd.DataFrame(data)
-        values = df[column]
 
-        value_counts = values.value_counts().reset_index()
-        value_counts.columns = ['Wartość', 'Liczba wystąpień']
+        fig = px.histogram(df, x=column, nbins=10,  # You can adjust 'nbins' as needed
+                           title=f'Histogram wartości dla {column}',
+                           labels={'count': 'Liczba wystąpień', column: 'Wartość'})
 
-        fig = px.bar(value_counts, x='Wartość', y='Liczba wystąpień',
-                     title=f'Liczba wystąpień każdej unikalnej wartości dla {column}')
+        fig.update_layout(yaxis_title='Liczba wystąpień')
 
         return dcc.Graph(figure=fig)
 
@@ -284,7 +283,6 @@ def register_1d_stats_callbacks():
         value_counts.columns = ['Wartość', 'Liczba wystąpień']
         value_counts['Wartość'] = value_counts['Wartość'].astype(str)
 
-        # Sortowanie wartości malejąco według liczby wystąpień
         value_counts = value_counts.sort_values(by='Liczba wystąpień', ascending=False)
 
         fig = px.bar(value_counts, x='Wartość', y='Liczba wystąpień',
