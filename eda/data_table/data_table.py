@@ -14,9 +14,9 @@ from dash import (
 )
 
 from eda.data_table.column_type import (
+    column_info,
+    convert_numeric_strings_to_numbers,
     convert_column_data_type,
-    is_int_column,
-    is_float_column,
 )
 
 
@@ -29,12 +29,7 @@ def register_dataframe_callbacks():
     def render(df_json: str):
         df = pd.read_json(StringIO(df_json))
 
-        for name, values in df.items():
-            if values.dtype == "object" or values.dtype == "float64":
-                if is_int_column(values):
-                    convert_column_data_type(df, name, "int64")
-                elif is_float_column(values):
-                    convert_column_data_type(df, name, "float64")
+        convert_numeric_strings_to_numbers(df)
 
         string_dtypes = df.dtypes.astype(str).str.lower()
         json_dataframe = df.to_json(date_format="iso")
@@ -57,16 +52,22 @@ def register_dataframe_callbacks():
                     for name in df.columns.tolist()
                 ],
                 data=df.to_dict("records"),
+                filter_action='native',
+                sort_action="native",
+                sort_mode="multi",
+                editable=True,
+                row_deletable=True,
                 page_size=15,
             ),
 
             html.H2("Edytor zmiennych"),
             html.Div(id='dropdown-container'),
+            html.Div(id='dropdown_status'),
 
             html.Button('Zapisz zmiany', id='save', n_clicks=0),
-            html.Button('Cofnij wszystkie zmiany', id='reset', n_clicks=0),
+            html.Button('Wróć do zapisanej wersji', id='reset-unsaved', n_clicks=0),
+            html.Button('Wróć do pierwotnej wersji', id='reset-all', n_clicks=0)
 
-            html.Div(id='dropdown_status')
         ])
 
 
@@ -91,11 +92,11 @@ def register_dataframe_callbacks():
                     dcc.Dropdown(
                         id={'type-dropdown': column_name},
                         options=[
-                            {'label': 'String', 'value': 'object'},
-                            {'label': 'Integer', 'value': 'int64'},
-                            {'label': 'Float', 'value': 'float64'},
-                            {'label': 'Datetime', 'value': 'datetime64'},
-                            {'label': 'Categorical', 'value': 'category'},
+                            {
+                                "label": cinfo.name,
+                                "value": cinfo.type
+                            }
+                            for cinfo in column_info
                         ],
                         value=column_type
                     )
@@ -132,12 +133,12 @@ def register_dataframe_callbacks():
         Output('data-table', 'data', allow_duplicate=True),
         Output('data-table', 'columns', allow_duplicate=True),
         Output('current-dtypes', 'data', allow_duplicate=True),
-        Input('reset', 'n_clicks'),
+        Input('reset-unsaved', 'n_clicks'),
         State('stored-dataframe', 'data'),
         State('stored-dtypes', 'data'),
         prevent_initial_call=True
     )
-    def reset_data(n_clicks, stored_df_json, stored_data_types):
+    def reset_data_to_saved_version(n_clicks, stored_df_json, stored_data_types):
         df = pd.read_json(StringIO(stored_df_json))
         columns=[
             {
@@ -150,13 +151,36 @@ def register_dataframe_callbacks():
         ]
 
         return df.to_dict('records'), columns, stored_data_types
+    
+    @callback(
+        Output('data-table', 'data', allow_duplicate=True),
+        Output('data-table', 'columns', allow_duplicate=True),
+        Output('current-dtypes', 'data', allow_duplicate=True),
+        Input('reset-all', 'n_clicks'),
+        State('dataframe', 'data'),
+        prevent_initial_call=True
+    )
+    def reset_data_all(n_clicks, initial_data):
+        df = pd.read_json(StringIO(initial_data))
+        convert_numeric_strings_to_numbers(df)
 
+        columns=[
+            {
+                'name': name,
+                'id': name,
+                'deletable': True,
+                'renamable': True,
+            }
+            for name in df.columns.tolist()
+        ]
+
+        return df.to_dict('records'), columns, df.dtypes.astype(str).str.lower().to_dict()
 
     @callback(
         Output('stored-dataframe', 'data'),
         Output('stored-dtypes', 'data'),
         Input('save', 'n_clicks'),
-        State('data-table', 'data'),
+        State('data-table', 'derived_virtual_data'),
         State('data-table', 'columns'),
         State('current-dtypes', 'data'),
         prevent_initial_call=True
