@@ -1,4 +1,4 @@
-from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
+from dash import dcc, html, callback, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_ag_grid as dag
 
@@ -10,6 +10,7 @@ def register_2d_stats_callbacks():
     MAX_ROWS = 15
     ROW_HEIGHT = 42
     HEADER_ROW_HEIGHT = 49
+
     @callback(
         Output('statistic_2d_output', 'children', allow_duplicate=True),
         Input('dataframe', 'data'),
@@ -159,4 +160,5 @@ def register_2d_stats_callbacks():
             }
         )
 
-        return html.H3("Analiza wariancji"), anova_table, html.H3("Analiza kowariancji"), ancova_table, html.H3("Analiza regresji i klasteryzacja"), cluster_regression_table
+        return (html.H3("Analiza wariancji"), anova_table, html.H3("Analiza kowariancji"),
+                ancova_table, html.H3("Analiza regresji i klasteryzacja"), cluster_regression_table)
