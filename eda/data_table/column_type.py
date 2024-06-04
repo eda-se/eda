@@ -60,6 +60,10 @@ def is_number_type(column_type: str) -> bool:
         or column_type == column_info[1].type
 
 
+def is_categorical_type(column_type: str) -> bool:
+    return column_type == column_info[4].type
+
+
 def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
     for name, values in df.items():
         if values.dtype == "object" or values.dtype == "float64":

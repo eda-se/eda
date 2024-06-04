@@ -3,7 +3,7 @@ from dash.exceptions import PreventUpdate
 import dash_ag_grid as dag
 
 from eda.destats import *
-from eda.data_table.column_type import is_number_type
+from eda.data_table.column_type import is_number_type, is_categorical_type
 
 
 def register_2d_stats_callbacks():
@@ -57,8 +57,10 @@ def register_2d_stats_callbacks():
 
         if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
             return info, numeric_stats(df, x, y)
-        else:
-            return info, no_update
+        if is_categorical_type(dtypes[x]) and is_number_type(dtypes[y]):
+            return info, create_statistics_table(df, x, y)
+
+        return info, "Wybierz albo dwie wartości numeryczne, albo pierwszą kategoryczną, a drugą numeryczną!"
 
     def numeric_stats(data, x, y):
         labels = [
@@ -100,3 +102,45 @@ def register_2d_stats_callbacks():
 
         return stats
 
+    def categorical_stats(data, x, y):
+        formula = f'{y} ~ {x}'
+        n_clusters = 2
+        anova_results = anova_analysis(data, formula)
+        ancova_results = ancova_analysis(data, formula)
+        regression_predictions = linear_regression_analysis(data[x], data[y])
+        cluster_labels = cluster_analysis(data, n_clusters)
+
+        combined_results = {
+            "ANOVA": anova_results.to_dict(),
+            "ANCOVA": ancova_results.to_dict(),
+            "Regression Predictions": regression_predictions.to_dict(),
+            "Cluster Labels": cluster_labels.to_dict()
+        }
+
+        combined_df = pd.concat(
+            [pd.DataFrame.from_dict(v, orient='index').reset_index() for k, v in combined_results.items()],
+            keys=combined_results.keys(),
+            names=['Analysis Type', 'Index']
+        ).reset_index()
+
+        return combined_df
+
+    def create_statistics_table(data: pd.DataFrame, x: pd.Series, y: pd.Series):
+        statistics_df = categorical_stats(data, x, y, )
+
+        column_defs = [
+            {"field": "Analysis Type", "headerName": "Type of Analysis"},
+            {"field": "Index", "headerName": "Index"},
+            {"field": "index", "headerName": "Statistic"},
+            {"field": 0, "headerName": "Value"}
+        ]
+
+        return dag.AgGrid(
+            id="statistics-table",
+            rowData=statistics_df.to_dict("records"),
+            columnDefs=column_defs,
+            style={
+                "height": min(statistics_df.shape[0], 20) * 28 + 30 + 2,
+                "overflow": "hidden" if statistics_df.shape[0] <= 20 else "auto"
+            }
+        )
