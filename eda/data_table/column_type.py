@@ -60,6 +60,14 @@ def is_number_type(column_type: str) -> bool:
         or column_type == column_info[1].type
 
 
+def is_categorical_type(column_type: str) -> bool:
+    return column_type == column_info[4].type
+
+
+def is_data_type(column_type: ColumnType) -> bool:
+    return column_type == column_info[2].type
+
+
 def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
     for name, values in df.items():
         if values.dtype == "object" or values.dtype == "float64":
@@ -70,9 +78,9 @@ def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
 
 
 def convert_column_data_type(
-    df: pd.DataFrame,
-    column_name: str,
-    column_type: ColumnType
+        df: pd.DataFrame,
+        column_name: str,
+        column_type: ColumnType
 ) -> None:
     column = df[column_name]
     match column_type:
@@ -80,8 +88,8 @@ def convert_column_data_type(
             df[column_name] = column.astype(str)
         case "int64":
             df[column_name] = pd.to_numeric(
-                    column,
-                    downcast="integer") \
+                column,
+                downcast="integer") \
                 .astype("Int64")
         case "float64":
             if column.dtype == "object":
