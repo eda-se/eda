@@ -15,8 +15,6 @@ app.layout = html.Div(id="main", children=[
     html.Div(id='statistic_output'),
     html.Div(style={'height': '40px'}),
     html.Div(id='statistic_2d_output'),
-    html.Div(style={'height': '40px'}),
-    html.Div(id='graph_output'),
     dcc.Store(id='dataframe'),
 ])
 

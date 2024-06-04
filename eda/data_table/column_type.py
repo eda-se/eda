@@ -68,6 +68,10 @@ def is_data_type(column_type: ColumnType) -> bool:
     return column_type == column_info[2].type
 
 
+def is_string_type(column_type: ColumnType) -> bool:
+    return column_type == column_info[3].type
+
+
 def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
     for name, values in df.items():
         if values.dtype == "object" or values.dtype == "float64":

@@ -1,6 +1,5 @@
-from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
+from dash import dcc, html, callback, Input, Output, State
 from dash.exceptions import PreventUpdate
-import dash_ag_grid as dag
 
 from eda.destats import *
 from eda.data_table.column_type import is_number_type
@@ -16,9 +15,10 @@ def register_2d_stats_callbacks():
         return html.Div(id="stats-2d", children=[
             html.H2("Statystki opisowe 2D"),
             html.Div(id="stats-2d__dropdown"),
-            html.Div(id="stats-2d__selected-variable"),
             html.Div(id="stats-2d__summary"),
             html.Div(id="stats-2d__tables"),
+            html.Div(id='stats-2d__buttons'),
+            html.Div(id='stats-2d__chart'),
         ])
 
     @callback(
@@ -40,12 +40,12 @@ def register_2d_stats_callbacks():
         return dropdowns
 
     @callback(
-        Output('stats-2d__selected-variable', 'children'),
         Output('stats-2d__summary', 'children'),
         Input('2d-dropdown1', 'value'),
         Input('2d-dropdown2', 'value'),
         State('data-table', 'data'),
         State('stored-dtypes', 'data'),
+
         prevent_initial_call=True
     )
     def computing_stats(x, y, data, dtypes):
@@ -56,9 +56,9 @@ def register_2d_stats_callbacks():
         df = pd.DataFrame(data)
 
         if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
-            return info, numeric_stats(df, x, y)
+            return numeric_stats(df, x, y)
         else:
-            return info, no_update
+            return None
 
     def numeric_stats(data, x, y):
         labels = [
