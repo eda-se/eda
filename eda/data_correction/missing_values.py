@@ -9,6 +9,11 @@ def handle_missing_values(df, column, strategy, missing_values="") -> pd.DataFra
     if strategy == "ffill":
         df[column] = df[column].ffill()
         return df
+    elif strategy == "delete":
+        for i in range(len(df[column])):
+            if np.isnan(df[column][i]):
+                df.drop(index=i, inplace=True)
+        return df
     else:
         try:
             imp = SimpleImputer(strategy=strategy)

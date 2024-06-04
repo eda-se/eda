@@ -1,7 +1,5 @@
-from io import StringIO
-
 import pandas as pd
-from dash import html, dcc, callback, Input, Output, no_update, State
+from dash import html, dcc, callback, Input, Output, no_update, State, dash_table
 from dash.exceptions import PreventUpdate
 from pandas.core.dtypes.common import is_numeric_dtype
 
@@ -33,6 +31,7 @@ def register_data_correction_callbacks():
             options = [
                 {"label": "Kopiuj poprzednią wartość", "value": "ffill"},
                 {"label": "Zastąp najczęściej występującą wartością", "value": "most_frequent"},
+                {"label": "Usuń wiersze z brakującymi wartościami", "value": "delete"},
             ]
             if is_numeric_dtype(df[column]):
                 options.append({"label": "Zastąp średnią", "value": "mean"})
@@ -43,7 +42,6 @@ def register_data_correction_callbacks():
             raise PreventUpdate
 
     @callback(
-        # Output("stored-dataframe", "data", allow_duplicate=True),
         Output("data-table", "data", allow_duplicate=True),
         Input("missing-values-button", "n_clicks"),
         State("missing-values-column", "value"),
@@ -60,7 +58,6 @@ def register_data_correction_callbacks():
             return no_update
 
     @callback(
-        # Output("stored-dataframe", "data", allow_duplicate=True),
         Output("data-table", "data", allow_duplicate=True),
         Input("outliers-button", "n_clicks"),
         State("outliers-column", "value"),
@@ -76,16 +73,37 @@ def register_data_correction_callbacks():
         else:
             return no_update
 
+    @callback(
+        Output("missing-values-table", "data", allow_duplicate=True),
+        Input("data-table", "data"),
+        prevent_initial_call=True,
+    )
+    def table_data(data):
+        df = pd.DataFrame(data)
+        return [{"col": col, "number": df[col].isna().sum()} for col in df.columns]
+
 
 def missing_values_dropdown(df: pd.DataFrame) -> html.Div:
     col_options = [{"label": col, "value": col} for col in df.columns]
 
+    number_of_missing_values = [{"col": col, "number": df[col].isna().sum()} for col in df.columns]
+
     return html.Div([
+        html.H2("Uzupełnianie brakujących wartości"),
+        dash_table.DataTable(
+            id="missing-values-table",
+            data= number_of_missing_values,
+            columns=[
+                {"name": "Kolumna", "id": "col"},
+                {"name": "Liczba wartości brakujących", "id": "number"},
+            ],
+        ),
         html.Label(f'Wybierz kolumnę: '),
         dcc.Dropdown(options=col_options, id='missing-values-column'),
         html.Label(f'Wybierz metodę: '),
         dcc.Dropdown(id='missing-values-method'),
         dcc.Input(value="", placeholder="Niestandardowa wartość do zastąpienia", id="custom-missing-value"),
+        html.Br(),
         html.Button('Uzupełnij wartości brakujące', id='missing-values-button'),
     ])
 
@@ -109,6 +127,7 @@ def outliers_dropdown(df: pd.DataFrame) -> html.Div:
     ]
 
     return html.Div([
+        html.H2("Poprawa wartości odstających"),
         html.Label(f'Wybierz kolumny: '),
         dcc.Dropdown(options=col_options, id='outliers-column', multi=True),
         html.Label(f'Wybierz metodę: '),
