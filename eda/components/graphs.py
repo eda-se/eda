@@ -5,7 +5,7 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 import plotly.express as px
 
-from eda.data_table.column_type import is_number_type, is_categorical_type
+from eda.data_table.column_type import is_number_type, is_categorical_type, is_data_type
 
 
 def register_graph_callbacks():
@@ -61,11 +61,13 @@ def register_graph_callbacks():
             raise PreventUpdate
 
         buttons = [
-            html.Button('liniowy', id="2d-line-chart"),
             html.Button('punktowy', id="2d-scatter-chart"),
             html.Button('mapa ciepła', id="2d-heatmap-chart")
         ]
-
+        if is_data_type(dtypes[x]):
+            buttons.extend([
+                html.Button('liniowy', id="2d-line-chart")
+            ])
         if is_categorical_type(dtypes[x]):
             if is_categorical_type(dtypes[y]):
                 buttons = [
@@ -82,8 +84,6 @@ def register_graph_callbacks():
             buttons.append(html.Button('punktowy z linią trendu', id="2d-trend-chart"))
 
         return ["wygeneruj wykres: "] + buttons, None
-
-
 
     @callback(
         Output('current_chosen', 'children', allow_duplicate=True),
@@ -153,11 +153,9 @@ def register_graph_callbacks():
         df = pd.DataFrame(data)
         selected_rows = df.iloc[start_row:end_row + 1]
 
-        selected_rows = selected_rows.groupby([column1, column2]).mean().reset_index()
-
-        fig = px.imshow(selected_rows.pivot(index=column1, columns=column2, values='Wartość'),
-                        labels=dict(x=column2, y=column1, color="Wartość"),
-                        title="Heatmapa")
+        fig = px.density_heatmap(selected_rows, x=column1, y=column2, nbinsx=20, nbinsy=20,
+                                 labels={column1: column1, column2: column2, 'color': 'Density'},
+                                 title="Heatmapa Gęstości Punktów")
 
         return info, dcc.Graph(figure=fig)
 
@@ -239,5 +237,3 @@ def register_graph_callbacks():
                          title=f'Wykres słupkowy dla {column1} z podziałem na {column2}')
 
         return info, dcc.Graph(figure=fig_bar)
-
-
