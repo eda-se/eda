@@ -1,5 +1,3 @@
-from io import StringIO
-
 from dash import dcc, html, callback, Input, Output, State
 from dash.exceptions import PreventUpdate
 import pandas as pd
@@ -9,11 +7,11 @@ import plotly.express as px
 def register_graph_callbacks():
     @callback(
         Output('graph_output', 'children', allow_duplicate=True),
-        Input('dataframe', 'data'),
+        Input('data-table', 'data'),
         prevent_initial_call=True
     )
     def render(df_json: str):
-        df = pd.read_json(StringIO(df_json))
+        df = pd.DataFrame(df_json)
 
         return html.Div([
             html.H2("Wizualizacja danych"),

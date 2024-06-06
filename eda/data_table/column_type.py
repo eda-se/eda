@@ -55,11 +55,6 @@ def is_float_column(column: pd.Series) -> bool:
     return column.apply(__is_float).any()
 
 
-def is_number_type(column_type: str) -> bool:
-    return column_type == column_info[0].type \
-        or column_type == column_info[1].type
-
-
 def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
     for name, values in df.items():
         if values.dtype == "object" or values.dtype == "float64":

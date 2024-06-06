@@ -1,12 +1,10 @@
-import math
-from io import StringIO
-
-from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
+from dash import dcc, html, callback, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_ag_grid as dag
+from pandas.core.dtypes.common import is_numeric_dtype
+
 
 from eda.destats import *
-from eda.data_table.column_type import is_number_type
 
 
 def register_1d_stats_callbacks():
@@ -20,8 +18,6 @@ def register_1d_stats_callbacks():
         prevent_initial_call=True
     )
     def render(df_json: str):
-        df = pd.read_json(StringIO(df_json))
-
         return html.Div(id="stats-1d", children=[
             html.H2("Statystki opisowe 1D"),
             html.Div(id="stats-1d__dropdown"),
@@ -50,10 +46,9 @@ def register_1d_stats_callbacks():
         Output('stats-1d__summary', 'children'),
         Input('1d-dropdown', 'value'),
         State('data-table', 'data'),
-        State('stored-dtypes', 'data'),
         prevent_initial_call=True
     )
-    def computing_stats(col, data, dtypes):
+    def computing_stats(col, data):
         if col is None:
             raise PreventUpdate
 
@@ -61,7 +56,7 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data)
         values = df[col]
 
-        if is_number_type(dtypes[col]):
+        if is_numeric_dtype(values):
             return info, numeric_stats(values)
         else:
             return info, categorical_stats(values)
@@ -136,17 +131,16 @@ def register_1d_stats_callbacks():
         Output('stats-1d__details', 'children'),
         Input('1d-dropdown', 'value'),
         State('data-table', 'data'),
-        State('stored-dtypes', 'data'),
         prevent_initial_call=True
     )
-    def generate_tables(col, data, dtypes):
+    def generate_tables(col, data):
         if data is None or col is None:
             raise PreventUpdate
 
         df = pd.DataFrame(data)
         values = df[col]
 
-        if is_number_type(dtypes[col]):
+        if is_numeric_dtype(values):
             return numeric_tables(values)
         return categorical_tables(values)
 

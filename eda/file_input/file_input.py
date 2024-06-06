@@ -1,5 +1,4 @@
 import dash
-import pandas as pd
 from dash import html, dcc, callback, Input, Output
 from dash.exceptions import PreventUpdate
 
