@@ -1,3 +1,4 @@
+import os
 from dash import Dash, html, dcc
 
 from eda.data_correction.data_correction import register_data_correction_callbacks
@@ -7,6 +8,8 @@ from eda.components import H1
 # from eda.components.graph import register_graph_callbacks
 from eda.components.statistics_1d import register_1d_stats_callbacks
 from eda.components.statistics_2d import register_2d_stats_callbacks
+
+DEVELOPMENT = True if os.getenv("DEVELOPMENT", False) else False
 
 index_template = """
     <!DOCTYPE html>
@@ -43,7 +46,8 @@ index_template = """
     </html>
 """
 
-if __name__ == '__main__':
+
+def run():
     app = Dash(__name__,
         title="EDA",
         index_string=index_template,
@@ -70,4 +74,11 @@ if __name__ == '__main__':
     # register_graph_callbacks()
     register_data_correction_callbacks()
 
-    app.run(debug=True)
+    if DEVELOPMENT:
+        app.run(debug=True)
+    else:
+        app.run(host="0.0.0.0")
+
+
+if __name__ == '__main__':
+    run()
