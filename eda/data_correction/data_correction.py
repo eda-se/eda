@@ -1,10 +1,20 @@
 import pandas as pd
-from dash import html, dcc, callback, Input, Output, no_update, State, dash_table
-from dash.exceptions import PreventUpdate
 from pandas.core.dtypes.common import is_numeric_dtype
+from dash import (
+  html,
+  dcc,
+  callback,
+  Input,
+  Output,
+  no_update,
+  State,
+)
+from dash.exceptions import PreventUpdate
+import dash_ag_grid as dag
 
 from eda.data_correction.missing_values import handle_missing_values
 from eda.data_correction.outliers import handle_outliers
+from eda.components import H2, H3, H4, Button, GridDiv
 
 
 def register_data_correction_callbacks():
@@ -16,6 +26,7 @@ def register_data_correction_callbacks():
     def data_correction(df):
         df = pd.DataFrame(df)
         return html.Div([
+            H2("Poprawa danych"),
             missing_values_dropdown(df),
             outliers_dropdown(df),
         ])
@@ -85,26 +96,62 @@ def register_data_correction_callbacks():
 
 def missing_values_dropdown(df: pd.DataFrame) -> html.Div:
     col_options = [{"label": col, "value": col} for col in df.columns]
-
     number_of_missing_values = [{"col": col, "number": df[col].isna().sum()} for col in df.columns]
 
-    return html.Div([
-        html.H2("Uzupełnianie brakujących wartości"),
-        dash_table.DataTable(
+    return html.Div(className="py-2", children=[
+        H3("Uzupełnianie brakujących wartości"),
+
+        dag.AgGrid(
             id="missing-values-table",
-            data= number_of_missing_values,
-            columns=[
-                {"name": "Kolumna", "id": "col"},
-                {"name": "Liczba wartości brakujących", "id": "number"},
-            ],
+
+            rowData=number_of_missing_values,
+            columnDefs=[
+                {
+                    "field": "col",
+                    "headerName": "Zmienna",
+                    "filter": True,
+                    "resizable": False,
+                },
+                {
+                    "field": "number",
+                    "headerName": "Liczba wartości brakujących",
+                    "minWidth": 250,
+                    "filter": True,
+                    "resizable": False,
+                },
+            ]
         ),
-        html.Label(f'Wybierz kolumnę: '),
-        dcc.Dropdown(options=col_options, id='missing-values-column'),
-        html.Label(f'Wybierz metodę: '),
-        dcc.Dropdown(id='missing-values-method'),
-        dcc.Input(value="", placeholder="Niestandardowa wartość do zastąpienia", id="custom-missing-value"),
-        html.Br(),
-        html.Button('Uzupełnij wartości brakujące', id='missing-values-button'),
+        # dash_table.DataTable(
+        #     id="missing-values-table",
+        #     data= number_of_missing_values,
+        #     columns=[
+        #         {"name": "Kolumna", "id": "col"},
+        #         {"name": "Liczba wartości brakujących", "id": "number"},
+        #     ],
+        # ),
+
+        html.Div(className="py-2", children=[
+            html.Div(className="py-2", children=[
+                H4(f"Wybierz zmienną"),
+                GridDiv(columns_count=4, children=[
+                    dcc.Dropdown(id="missing-values-column", options=col_options, placeholder="Zmienna"),
+                ]),
+            ]),
+            html.Div(className="py-2", children=[
+                H4(f"Wybierz metodę"),
+                GridDiv(columns_count=4, children=[
+                    dcc.Dropdown(id="missing-values-method", placeholder="Metoda"),
+                    dcc.Input(
+                        id="custom-missing-value",
+                        className="block w-full placeholder-gray-400/70 dark:placeholder-gray-500 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-gray-700 focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-blue-300",
+                        placeholder="Niestandardowa wartość do zastąpienia"
+                    ),
+                ]),
+            ]),
+            html.Div(className="max-w-80 mt-4", children=[
+                Button("Uzupełnij wartości brakujące", id="missing-values-button"),
+            ]),
+        ]),
     ])
 
 
@@ -126,14 +173,22 @@ def outliers_dropdown(df: pd.DataFrame) -> html.Div:
         {"label": "Zastąp medianą", "value": "median"},
     ]
 
-    return html.Div([
-        html.H2("Poprawa wartości odstających"),
-        html.Label(f'Wybierz kolumny: '),
-        dcc.Dropdown(options=col_options, id='outliers-column', multi=True),
-        html.Label(f'Wybierz metodę: '),
-        dcc.Dropdown(options=find_method_options, id='outliers-find-method', placeholder="Znajdywanie wartości odstających"),
-        dcc.Dropdown(options=fix_method_options, id='outliers-fix-method', placeholder="Poprawa wartości odstających"),
-        html.Button('Popraw wartości odstające w wybranych kolumnach', id='outliers-button'),
+    return html.Div(className="py-2", children=[
+        H3("Poprawa wartości odstających"),
 
-        html.Div(style={'marginBottom': '100px'})  # tymczasowe
+        html.Div(className="py-2", children=[
+            H4("Wybierz zmienną"),
+            dcc.Dropdown(id="outliers-column", options=col_options, placeholder="Zmienna", multi=True),
+        ]),
+        html.Div(className="py-2", children=[
+            H4(f"Wybierz metodę"),
+            GridDiv(columns_count=4, children=[
+                dcc.Dropdown(id="outliers-find-method", options=find_method_options, placeholder="Metoda znajdowania"),
+                dcc.Dropdown(id="outliers-fix-method", options=fix_method_options, placeholder="Metoda uzupełnienia"),
+            ]),
+        ]),
+
+        html.Div(className="max-w-80 mt-4", children=[
+            Button("Popraw wartości odstające", id="outliers-button"),
+        ]),
     ])

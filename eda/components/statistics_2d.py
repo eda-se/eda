@@ -1,46 +1,41 @@
 from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
 from dash.exceptions import PreventUpdate
-import dash_ag_grid as dag
 
 from eda.destats import *
 from eda.data_table.column_type import is_number_type
+from eda.components import H2, H3, H6, P, GridDiv
 
 
 def register_2d_stats_callbacks():
     @callback(
-        Output('statistic_2d_output', 'children', allow_duplicate=True),
-        Input('dataframe', 'data'),
+        Output("statistic_2d_output", "children", allow_duplicate=True),
+        Input("dataframe", "data"),
         prevent_initial_call=True
     )
     def render(df_json: str):
         return html.Div(id="stats-2d", children=[
-            html.H2("Statystki opisowe 2D"),
-            html.Div(id="stats-2d__dropdown"),
-            html.Div(id="stats-2d__selected-variable"),
-            html.Div(id="stats-2d__summary"),
+            H2("Statystki opisowe 2D"),
+            H3("Wybór zmiennych"),
+            GridDiv(id="stats-2d__dropdown", columns_count=4),
+            GridDiv(id="stats-2d__summary", columns_count=5),
             html.Div(id="stats-2d__tables"),
         ])
 
     @callback(
-        Output('stats-2d__dropdown', 'children'),
-        Input('data-table', 'data'),
+        Output("stats-2d__dropdown", "children"),
+        Input("data-table", "data"),
         prevent_initial_call=True
     )
     def update_dropdowns(data_table):
         df = pd.DataFrame(data_table)
-        options = [{'label': col, 'value': col} for col in df.columns]
-        dropdowns = [html.Div([
-            html.Label(f'Wybierz kolumny, dla których chcesz obliczyć statystyki: '),
-            dcc.Dropdown(options=options, id='2d-dropdown1')
-        ]),
-            html.Div([
-                dcc.Dropdown(options=options, id='2d-dropdown2')
-            ])]
+        options = [{"label": col, "value": col} for col in df.columns]
 
-        return dropdowns
+        return [
+            dcc.Dropdown(options=options, id="2d-dropdown1", placeholder="Pierwsza zmienna"),
+            dcc.Dropdown(options=options, id="2d-dropdown2", placeholder="Druga zmienna"),
+        ]
 
     @callback(
-        Output('stats-2d__selected-variable', 'children'),
         Output('stats-2d__summary', 'children'),
         Input('2d-dropdown1', 'value'),
         Input('2d-dropdown2', 'value'),
@@ -52,13 +47,12 @@ def register_2d_stats_callbacks():
         if x is None or y is None:
             raise PreventUpdate
 
-        info = f"Aktualnie wybrane wartości: {x}, {y}"
         df = pd.DataFrame(data)
 
         if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
-            return info, numeric_stats(df, x, y)
+            return numeric_stats(df, x, y)
         else:
-            return info, no_update
+            return no_update
 
     def numeric_stats(data, x, y):
         labels = [
@@ -77,21 +71,39 @@ def register_2d_stats_callbacks():
 
         stats = [
             html.Div([
-                html.H3(label + ":"),
-                html.Pre(function)
+                H6(label),
+                html.Pre(np.round(function, 3))
             ])
             for label, function in zip(labels, functions)
         ]
 
         def linear_regression_wrapper(result_dict):
-            return [html.Div([html.H3("Regresja liniowa:")]),
-                    html.Div([f"Intercept: {result_dict.get('intercept')}"]),
-                    html.Div([f"Współczynnik nachylenia: {result_dict.get('slope')}"])]
+            return html.Div(children=[
+                H6("Regresja liniowa"),
+                P(children=[
+                    html.Span("Współczynnik nachylenia: ", className="text-stone-900"),
+                    html.Pre(np.round(result_dict.get("slope"), 3)),
+                ]),
+                P(children=[
+                    html.Span("Przecięcie: ", className="text-stone-900"),
+                    html.Pre(np.round(result_dict.get("intercept"), 3)),
+                ]),
+            ]),
 
         def confidence_regression_wrapper(result_dict):
-            return [html.Div([html.H3("Przedział ufności:")]),
-                    html.Div([f"Przedział ufności dla interceptu: {result_dict.get('intercept')}"]),
-                    html.Div([f"Przedział ufności dla współczynnika nachylenia: {result_dict.get('slope')}"])]
+            slope = np.round(result_dict.get('slope'), 3)
+            intercept = np.round(result_dict.get('intercept'), 3)
+            return html.Div(children=[
+                H6("Regresja liniowa"),
+                P(children=[
+                    html.Span("Przedział ufności dla współczynnika nachylenia: ", className="text-stone-900"),
+                    html.Pre(f"[{slope[0]}, {slope[1]}]"),
+                ]),
+                P(children=[
+                    html.Span("Przedział ufności dla przecięcia: ", className="text-stone-900"),
+                    html.Pre(f"[{intercept[0]}, {intercept[1]}]"),
+                ]),
+            ]),
 
         result = linear_regression(x, y)
         stats.extend(linear_regression_wrapper(result))
@@ -99,4 +111,3 @@ def register_2d_stats_callbacks():
         stats.extend(confidence_regression_wrapper(result))
 
         return stats
-

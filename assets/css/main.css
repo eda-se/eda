@@ -7,28 +7,5 @@ body {
 
 #main {
   padding: 2rem;
-}
-
-.file-dropdown {
-  cursor: pointer;
-  background-color: #fafafa;
-  border: 1px solid #8980f5;
-  border-radius: .5rem;
-  text-align: center;
-  transition: background-color .33s ease;
-}
-
-.file-dropdown:hover {
-  background-color: #f3f3f3;
-}
-
-.stats__paragraph {
-  margin: 0;
-  padding: .125rem;
-}
-
-.stats__value {
-  display: inline-block;
-  margin: 0;
-  margin-left: 1rem;
+  background: url("../image/main-bg.png") top center no-repeat;
 }
