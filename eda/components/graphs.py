@@ -7,10 +7,10 @@ from eda.data_table.column_type import is_number_type, is_categorical_type, is_d
 
 
 def register_graph_callbacks():
-
     @callback(
         Output('stats-2d__buttons', 'children'),
         Output('stats-2d__chart', 'children', allow_duplicate=True),
+        Output('stats-2d__reverse', 'children', allow_duplicate=True),
         Input('2d-dropdown1', 'value'),
         Input('2d-dropdown2', 'value'),
         State('stored-dtypes', 'data'),
@@ -51,7 +51,7 @@ def register_graph_callbacks():
         if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
             buttons.append(html.Button('punktowy z linią trendu', id="2d-trend-chart"))
 
-        return [html.H3("Wygeneruj wykres: "), chart_range] + buttons, None
+        return [html.H3("Wygeneruj wykres: "), chart_range] + buttons, None, html.Button('zamień', id="reverse"),
 
     @callback(
         Output('stats-2d__chart', 'children', allow_duplicate=True),
@@ -76,6 +76,7 @@ def register_graph_callbacks():
     @callback(
         Output('stats-2d__chart', 'children', allow_duplicate=True),
         Input('2d-trend-chart', 'n_clicks'),
+        Input('stats-2d__reverse', 'n_clicks'),
         State('data-table', 'data'),
         State('2d-dropdown1', 'value'),
         State('2d-dropdown2', 'value'),
@@ -83,9 +84,12 @@ def register_graph_callbacks():
         State('end-row', 'value'),
         prevent_initial_call=True
     )
-    def generate_scatter_graph_with_trend(n_clicks, data_table, x_col, y_col, start_row, end_row):
+    def generate_scatter_graph_with_trend(n_clicks, clicks, data_table, x_col, y_col, start_row, end_row):
         if data_table is None or x_col is None or y_col is None:
             raise PreventUpdate
+        if clicks is not None:
+            if clicks % 2 == 1:
+                y_col, x_col = x_col, y_col
 
         df = pd.DataFrame(data_table)
         filtered_df = df.iloc[start_row:end_row + 1]
@@ -98,6 +102,7 @@ def register_graph_callbacks():
     @callback(
         Output('stats-2d__chart', 'children', allow_duplicate=True),
         Input('2d-heatmap-chart', 'n_clicks'),
+        Input('stats-2d__reverse', 'n_clicks'),
         State('data-table', 'data'),
         State('2d-dropdown1', 'value'),
         State('2d-dropdown2', 'value'),
@@ -105,16 +110,19 @@ def register_graph_callbacks():
         State('end-row', 'value'),
         prevent_initial_call=True
     )
-    def heatmap_chart(n_clicks, data, column1, column2, start_row, end_row):
+    def heatmap_chart(n_clicks, clicks, data, column1, column2, start_row, end_row):
         if n_clicks is None or column1 is None or column2 is None or data is None:
             raise PreventUpdate
+        if clicks is not None:
+            if clicks % 2 == 1:
+                column1, column2 = column2, column1
 
         df = pd.DataFrame(data)
         selected_rows = df.iloc[start_row:end_row + 1]
 
         fig = px.density_heatmap(selected_rows, x=column1, y=column2, nbinsx=20, nbinsy=20,
                                  labels={column1: column1, column2: column2, 'color': 'Density'},
-                                 title="Heatmapa Gęstości Punktów")
+                                 title="Mapa Gęstości Punktów")
 
         return dcc.Graph(figure=fig)
 
@@ -142,6 +150,7 @@ def register_graph_callbacks():
     @callback(
         Output('stats-2d__chart', 'children', allow_duplicate=True),
         Input('2d-scatter-chart', 'n_clicks'),
+        Input('stats-2d__reverse', 'n_clicks'),
         State('data-table', 'data'),
         State('2d-dropdown1', 'value'),
         State('2d-dropdown2', 'value'),
@@ -149,12 +158,15 @@ def register_graph_callbacks():
         State('end-row', 'value'),
         prevent_initial_call=True
     )
-    def generate_scatter_plot(n_clicks, data, column1, column2, start_row, end_row):
+    def generate_scatter_plot(n_clicks, clicks, data, column1, column2, start_row, end_row):
         if n_clicks is None or column1 is None or column2 is None or data is None:
             raise PreventUpdate
 
         df = pd.DataFrame(data)
         selected_rows = df.iloc[start_row:end_row + 1]
+        if clicks is not None:
+            if clicks % 2 == 1:
+                column1, column2 = column2, column1
 
         fig_scatter = px.scatter(selected_rows, x=column1, y=column2, title="Wykres punktowy")
 
@@ -163,6 +175,7 @@ def register_graph_callbacks():
     @callback(
         Output('stats-2d__chart', 'children', allow_duplicate=True),
         Input('2d-bar-chart', 'n_clicks'),
+        Input('stats-2d__reverse', 'n_clicks'),
         State('data-table', 'data'),
         State('2d-dropdown1', 'value'),
         State('2d-dropdown2', 'value'),
@@ -170,9 +183,12 @@ def register_graph_callbacks():
         State('end-row', 'value'),
         prevent_initial_call=True
     )
-    def generate_bar_plot(n_clicks, data, column1, column2, start_row, end_row):
+    def generate_bar_plot(n_clicks, clicks, data, column1, column2, start_row, end_row):
         if n_clicks is None or column1 is None or column2 is None or data is None:
             raise PreventUpdate
+        if clicks is not None:
+            if clicks % 2 == 1:
+                column1, column2 = column2, column1
 
         df = pd.DataFrame(data)
         selected_rows = df.iloc[start_row:end_row + 1]

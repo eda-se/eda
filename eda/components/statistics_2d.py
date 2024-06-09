@@ -21,6 +21,7 @@ def register_2d_stats_callbacks():
             html.Div(id="stats-2d__tables"),
             html.Div(id='stats-2d__buttons'),
             html.Div(id='stats-2d__chart'),
+            html.Div(id='stats-2d__reverse'),
         ])
 
     @callback(
@@ -56,7 +57,6 @@ def register_2d_stats_callbacks():
             return numeric_stats(df, x, y)
         else:
             return no_update
-
 
     def numeric_stats(data, x, y):
         labels = [
