@@ -11,30 +11,27 @@ def register_input_callbacks():
         Input('output', 'id'),
     )
     def on_render(_):
-        return html.Div([
+        return html.Div(children=[
             dcc.Upload(
-                id='upload-data',
-                className="file-dropdown",
-                children=html.Div(children=[
-                    'Przeciągnij i upuść lub ',
-                    html.A('wybierz plik')
-                ]),
-                style={
-                    'width': '50%',
-                    'height': '60px',
-                    'lineHeight': '60px',
-                    'margin': '10px'
-                },
+                id='upload-csv-data',
+                className="upload-container w-full max-w-xl",
+                children=[
+                    html.Label(className="flex flex-col items-center w-full p-5 text-center bg-white border-2 border-purple-200 border-dashed cursor-pointer dark:bg-gray-900 dark:border-gray-700 rounded-xl hover:bg-slate-50 hover:border-blue-600 ease-in-out duration-200", children=[
+                        html.I(className="fa-solid fa-cloud-arrow-up text-2xl text-gray-500 dark:text-gray-400"),
+                        html.H2("Dodaj swój arkusz kalkulacyjny", className="mt-1 font-medium tracking-wide text-gray-700 dark:text-gray-200"),
+                        html.P("Wybierz lub przeciągnij i upuść plik CSV", className="mt-2 text-xs tracking-wide text-gray-500 dark:text-gray-400")
+                    ])
+                ]
             ),
-            html.Div(id='error')
+            html.Div(id='upload-error')
         ])
 
     @callback(
         [
             Output('dataframe', 'data'),
-            Output('error', 'children')
+            Output('upload-error', 'children')
         ],
-        Input('upload-data', 'contents'),
+        Input('upload-csv-data', 'contents'),
     )
     def handle_file(content: str | None):
         if content is None:
