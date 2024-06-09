@@ -1,6 +1,7 @@
 import os
 from dash import Dash, html, dcc
 
+from eda.components.graphs import register_graph_callbacks
 from eda.data_correction.data_correction import register_data_correction_callbacks
 from eda.file_input.file_input import register_input_callbacks
 from eda.data_table.data_table import register_dataframe_callbacks
@@ -69,6 +70,7 @@ register_input_callbacks()
 register_dataframe_callbacks()
 register_1d_stats_callbacks()
 register_2d_stats_callbacks()
+register_graph_callbacks()
 register_data_correction_callbacks()
 
 server = app.server

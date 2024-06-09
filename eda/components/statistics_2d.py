@@ -98,7 +98,7 @@ def register_2d_stats_callbacks():
             slope = np.round(result_dict.get('slope'), 3)
             intercept = np.round(result_dict.get('intercept'), 3)
             return html.Div(children=[
-                H6("Regresja liniowa"),
+                H6("Przedział ufności"),
                 P(children=[
                     html.Span("Przedział ufności dla współczynnika nachylenia: ", className="text-stone-900"),
                     html.Pre(f"[{slope[0]}, {slope[1]}]"),
