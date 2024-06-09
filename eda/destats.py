@@ -58,7 +58,10 @@ def skewness_1d(values: pd.Series) -> float:
 
 # 2D
 def clean_columns(x: pd.Series, y: pd.Series) -> tuple[pd.Series, pd.Series]:
-    mask = ~np.isnan(x) & ~np.isnan(y) & ~np.isinf(x) & ~np.isinf(y)
+    if pd.api.types.is_numeric_dtype(x) and pd.api.types.is_numeric_dtype(y):
+        mask = ~np.isnan(x) & ~np.isnan(y) & ~np.isinf(x) & ~np.isinf(y)
+    else:
+        mask = ~x.isna() & ~y.isna()
     return x[mask], y[mask]
 
 
