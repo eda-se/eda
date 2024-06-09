@@ -61,7 +61,8 @@ def is_number_type(column_type: str) -> bool:
 
 
 def is_categorical_type(column_type: str) -> bool:
-    return column_type == column_info[4].type
+    return column_type == column_info[4].type \
+        or column_type == column_info[3].type
 
 
 def is_data_type(column_type: ColumnType) -> bool:

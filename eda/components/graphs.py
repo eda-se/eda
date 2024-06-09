@@ -3,7 +3,7 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 import plotly.express as px
 
-from eda.data_table.column_type import is_number_type, is_categorical_type, is_data_type, is_string_type
+from eda.data_table.column_type import is_number_type, is_categorical_type, is_data_type
 
 
 def register_graph_callbacks():
@@ -36,8 +36,8 @@ def register_graph_callbacks():
             buttons.extend([
                 html.Button('liniowy', id="2d-line-chart")
             ])
-        if is_categorical_type(dtypes[x]) or is_string_type(dtypes[x]):
-            if is_categorical_type(dtypes[y]) or is_string_type(dtypes[y]):
+        if is_categorical_type(dtypes[x]):
+            if is_categorical_type(dtypes[y]):
                 buttons = [
                     html.Button('słupkowy', id="2d-bar-chart"),
                     html.Button('mapa ciepła', id="2d-heatmap-chart")
@@ -48,7 +48,7 @@ def register_graph_callbacks():
                         html.Button('punktowy', id="2d-scatter-chart"),
                         html.Button('pudelkowy', id="2d-box-chart")
                     ]
-        if is_number_type(dtypes[x]):
+        if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
             buttons.append(html.Button('punktowy z linią trendu', id="2d-trend-chart"))
 
         return [html.H3("Wygeneruj wykres: "), chart_range] + buttons, None
