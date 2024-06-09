@@ -58,7 +58,10 @@ def register_2d_stats_callbacks():
 
         if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
             return numeric_stats(df, x, y)
-        if is_categorical_type(dtypes[x]) and is_number_type(dtypes[y]):
+        if ((is_categorical_type(dtypes[x]) and is_number_type(dtypes[y]))
+                or (is_categorical_type(dtypes[y]) and is_number_type(dtypes[x]))):
+            if is_categorical_type(dtypes[y]):
+                x, y = y, x
             return create_categorical_tables(df, x, y)
 
         return None
