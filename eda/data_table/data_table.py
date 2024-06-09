@@ -62,6 +62,9 @@ def register_dataframe_callbacks():
                 row_deletable=True,
                 page_size=15,
             ),
+            html.Button('Zapisz zmiany', id='save', n_clicks=0), html.Br(),
+            html.Button('Wróć do zapisanej wersji', id='reset-unsaved', n_clicks=0), html.Br(),
+            html.Button('Wróć do pierwotnej wersji', id='reset-all', n_clicks=0),
 
             H3("Edytor zmiennych"),
             GridDiv(id="dropdown-container", columns_count=6),
