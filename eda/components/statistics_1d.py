@@ -8,7 +8,6 @@ from pandas.core.dtypes.common import is_numeric_dtype
 
 
 from eda.destats import *
-from eda.data_table.column_type import is_number_type
 from eda.components import H2, H3, H6, P, Button, GridDiv
 
 
