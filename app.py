@@ -56,11 +56,9 @@ app.layout = html.Div(id="main", children=[
 
     H1("Analiza Eksploracyjna"),
     html.Div(id="output", className="py-6"),
-
     html.Div(id="data_correction_output", className="py-6"),
     html.Div(id="statistic_output", className="py-6"),
     html.Div(id="statistic_2d_output", className="py-6"),
-    # html.Div(id="graph_output", className="py-6"),
     html.Footer(className="h-40"),
 
     dcc.Store(id="dataframe"),
@@ -71,7 +69,6 @@ register_input_callbacks()
 register_dataframe_callbacks()
 register_1d_stats_callbacks()
 register_2d_stats_callbacks()
-# register_graph_callbacks()
 register_data_correction_callbacks()
 
 server = app.server

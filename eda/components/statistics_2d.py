@@ -1,4 +1,4 @@
-from dash import dcc, html, callback, Input, Output, State
+from dash import dcc, html, callback, Input, Output, State, no_update
 from dash.exceptions import PreventUpdate
 
 from eda.destats import *
@@ -14,7 +14,6 @@ def register_2d_stats_callbacks():
     )
     def render(df_json: str):
         return html.Div(id="stats-2d", children=[
-
             H2("Statystki opisowe 2D"),
             H3("Wybór zmiennych"),
             GridDiv(id="stats-2d__dropdown", columns_count=4),
