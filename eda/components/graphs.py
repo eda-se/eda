@@ -45,8 +45,10 @@ def register_graph_callbacks():
                         generate_box_plot(data, x, y, start_row, end_row)
                     ]
         if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
-            charts.append(generate_scatter_graph_with_trend(clicks, data, x, y, start_row, end_row))
-
+            charts = [
+                generate_scatter_graph_with_trend(clicks, data, x, y, start_row, end_row),
+                heatmap_chart(clicks, data, x, y, start_row, end_row),
+            ]
         return charts, html.Button('zamień', id="reverse"),
 
     def generate_line_graph(data_table, x_col, y_col, start_row, end_row):
@@ -69,7 +71,8 @@ def register_graph_callbacks():
         df = pd.DataFrame(data_table)
         filtered_df = df.iloc[start_row:end_row + 1]
 
-        fig = px.scatter(filtered_df, x=x_col, y=y_col, trendline="ols")
+        fig = px.scatter(filtered_df, x=x_col, y=y_col, trendline="ols",
+                         title="Wykres punktowy z linią trendu")
         fig.update_traces(selector=dict(name="trendline"), line=dict(color='green'))  # Zmiana koloru linii trendu
 
         return dcc.Graph(figure=fig)
