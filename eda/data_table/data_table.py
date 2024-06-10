@@ -13,6 +13,7 @@ from dash import (
     no_update,
 )
 
+from eda.components import H2, H3, P, Button, GridDiv
 from eda.data_table.column_type import (
     column_info,
     convert_numeric_strings_to_numbers,
@@ -39,7 +40,9 @@ def register_dataframe_callbacks():
             dcc.Store(id='stored-dtypes', data=string_dtypes.to_dict()),
             dcc.Store(id='stored-dataframe', data=json_dataframe),
 
-            html.H2("Zaimportowany plik CSV"),
+            H2("Przetwarzanie pliku"),
+
+            H3("Podgląd zaimportowanego pliku CSV"),
             dash_table.DataTable(
                 id="data-table",
                 columns=[
@@ -59,15 +62,19 @@ def register_dataframe_callbacks():
                 row_deletable=True,
                 page_size=15,
             ),
+            html.Button('Zapisz zmiany', id='save', n_clicks=0), html.Br(),
+            html.Button('Wróć do zapisanej wersji', id='reset-unsaved', n_clicks=0), html.Br(),
+            html.Button('Wróć do pierwotnej wersji', id='reset-all', n_clicks=0),
 
-            html.H2("Edytor zmiennych"),
-            html.Div(id='dropdown-container'),
-            html.Div(id='dropdown_status'),
+            H3("Edytor zmiennych"),
+            GridDiv(id="dropdown-container", columns_count=6),
+            P(id="dropdown_status", margin_y=True),
 
-            html.Button('Zapisz zmiany', id='save', n_clicks=0),
-            html.Button('Wróć do zapisanej wersji', id='reset-unsaved', n_clicks=0),
-            html.Button('Wróć do pierwotnej wersji', id='reset-all', n_clicks=0)
-
+            GridDiv(id="var-button-container", columns_count=4, children=[
+                Button("Zapisz zmiany", id="save"),
+                Button("Wróć do zapisanej wersji", id="reset-unsaved"),
+                Button("Wróć do pierwotnej wersji", id="reset-all"),
+            ])
         ])
 
 
@@ -88,7 +95,7 @@ def register_dataframe_callbacks():
 
             dropdowns.append(
                 html.Div([
-                    html.Label(f'Wybierz typ dla {column_name}'),
+                    html.Label(column_name),
                     dcc.Dropdown(
                         id={'type-dropdown': column_name},
                         options=[
@@ -124,8 +131,13 @@ def register_dataframe_callbacks():
                 convert_column_data_type(df, column_id, dtype)
                 current_data_types[column_id] = dtype
 
-            except Exception as e:
-                return f"Error converting column {column['name']} to {dtype}: \n{str(e)}", no_update, no_update
+            except Exception:
+                return (
+                    "Wystąpił błąd przy zmianie typu kolumny"
+                        + f"{column['name']} na {dtype}",
+                    no_update,
+                    no_update
+                )
 
         return "Poprawnie wybrane typy", df.to_dict('records'), current_data_types
 
@@ -151,7 +163,7 @@ def register_dataframe_callbacks():
         ]
 
         return df.to_dict('records'), columns, stored_data_types
-    
+
     @callback(
         Output('data-table', 'data', allow_duplicate=True),
         Output('data-table', 'columns', allow_duplicate=True),

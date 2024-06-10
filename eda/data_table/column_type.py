@@ -55,11 +55,6 @@ def is_float_column(column: pd.Series) -> bool:
     return column.apply(__is_float).any()
 
 
-def is_number_type(column_type: str) -> bool:
-    return column_type == column_info[0].type \
-        or column_type == column_info[1].type
-
-
 def is_categorical_type(column_type: str) -> bool:
     return column_type == column_info[4].type \
         or column_type == column_info[3].type
