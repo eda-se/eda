@@ -20,7 +20,7 @@ def register_graph_callbacks():
         prevent_initial_call=True
     )
     def generate_charts(x, y, clicks, dtypes, df, start_row, end_row):
-        if x is None or y is None:
+        if x is None or y is None or df is None:
             raise PreventUpdate
         data = pd.DataFrame(df)
 
@@ -52,9 +52,6 @@ def register_graph_callbacks():
         return charts, html.Button('zamień', id="reverse"),
 
     def generate_line_graph(data_table, x_col, y_col, start_row, end_row):
-        if data_table is None or x_col is None or y_col is None:
-            raise PreventUpdate
-
         df = pd.DataFrame(data_table)
         filtered_df = df.iloc[start_row:end_row + 1]
 
@@ -62,8 +59,6 @@ def register_graph_callbacks():
         return dcc.Graph(figure=fig)
 
     def generate_scatter_graph_with_trend(clicks, data_table, x_col, y_col, start_row, end_row):
-        if data_table is None or x_col is None or y_col is None:
-            raise PreventUpdate
         if clicks is not None:
             if clicks % 2 == 1:
                 y_col, x_col = x_col, y_col
@@ -78,8 +73,6 @@ def register_graph_callbacks():
         return dcc.Graph(figure=fig)
 
     def heatmap_chart(clicks, data, column1, column2, start_row, end_row):
-        if column1 is None or column2 is None or data is None:
-            raise PreventUpdate
         if clicks is not None:
             if clicks % 2 == 1:
                 column1, column2 = column2, column1
@@ -88,15 +81,16 @@ def register_graph_callbacks():
         selected_rows = df.iloc[start_row:end_row + 1]
 
         fig = px.density_heatmap(selected_rows, x=column1, y=column2, nbinsx=20, nbinsy=20,
-                                 labels={column1: column1, column2: column2, 'color': 'Density'},
+                                 labels={column1: column1, column2: column2},
                                  title="Mapa Gęstości Punktów")
+        fig.layout['coloraxis']['colorbar']['title'] = 'Liczba wystąpień'
+        fig.update_traces(
+            hovertemplate=f"<b>{column1}:</b> %{{x}}<br><b>{column2}:</b> %{{y}}<br><b>Liczba wystąpień:</b> %{{z}}<extra></extra>"
+        )
 
         return dcc.Graph(figure=fig)
 
     def generate_box_plot(data, column1, column2, start_row, end_row):
-        if column1 is None or column2 is None or data is None:
-            raise PreventUpdate
-
         df = pd.DataFrame(data)
         selected_rows = df.iloc[start_row:end_row + 1]
 
@@ -105,22 +99,18 @@ def register_graph_callbacks():
         return dcc.Graph(figure=fig_box)
 
     def generate_scatter_plot(clicks, data, column1, column2, start_row, end_row):
-        if column1 is None or column2 is None or data is None:
-            raise PreventUpdate
-
-        df = pd.DataFrame(data)
-        selected_rows = df.iloc[start_row:end_row + 1]
         if clicks is not None:
             if clicks % 2 == 1:
                 column1, column2 = column2, column1
+
+        df = pd.DataFrame(data)
+        selected_rows = df.iloc[start_row:end_row + 1]
 
         fig_scatter = px.scatter(selected_rows, x=column1, y=column2, title="Wykres punktowy")
 
         return dcc.Graph(figure=fig_scatter)
 
     def generate_bar_plot(clicks, data, column1, column2, start_row, end_row):
-        if column1 is None or column2 is None or data is None:
-            raise PreventUpdate
         if clicks is not None:
             if clicks % 2 == 1:
                 column1, column2 = column2, column1
@@ -135,6 +125,7 @@ def register_graph_callbacks():
         grouped_data.columns = [column1, column2, 'Count']
 
         fig_bar = px.bar(grouped_data, x=column1, y='Count', color=column2,
-                         title=f'Wykres słupkowy dla {column1} z podziałem na {column2}')
+                         title=f'Wykres słupkowy dla {column1} z podziałem na {column2}',
+                         labels={'Count': "Liczba wystąpień"})
 
         return dcc.Graph(figure=fig_bar)
