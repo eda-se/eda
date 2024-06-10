@@ -73,3 +73,7 @@ register_2d_stats_callbacks()
 register_data_correction_callbacks()
 
 server = app.server
+
+if __name__ == "__main__":
+    if DEVELOPMENT:
+        app.run(debug=True)
