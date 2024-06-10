@@ -66,9 +66,12 @@ def Button(content: str, id: str) -> html.Button:
 def GridDiv(
     id: str | None = None,
     children: list[html.Div] | None = None,
-    columns_count: int = 1
+    columns_count: int = 1,
+    margin_y=False
 ) -> html.Div:
     class_name = f"grid grid-cols-1 md:grid-cols-{columns_count // 2} lg:grid-cols-{columns_count} gap-4"
+    if margin_y:
+        class_name += " my-2"
 
     if id is None:
         return html.Div(

@@ -2,7 +2,7 @@ import dash
 from dash import html, dcc, callback, Input, Output
 from dash.exceptions import PreventUpdate
 
-from eda.file_input.csv_parser import get_dataframe_from_contents
+from eda.file_input.csv_parser import CSVParser
 
 
 def register_input_callbacks():
@@ -38,7 +38,7 @@ def register_input_callbacks():
             raise PreventUpdate
 
         try:
-            result = get_dataframe_from_contents(content)
+            result = CSVParser.get_dataframe_from_contents(content)
             return result.to_json(), dash.no_update
         except TypeError as e:
             return dash.no_update, html.Div(str(e))
