@@ -13,14 +13,21 @@ def register_2d_stats_callbacks():
         prevent_initial_call=True
     )
     def render(df_json: str):
+        df = pd.read_json(df_json)
         return html.Div(id="stats-2d", children=[
             H2("Statystki opisowe 2D"),
             H3("Wybór zmiennych"),
             GridDiv(id="stats-2d__dropdown", columns_count=4),
             GridDiv(id="stats-2d__summary", columns_count=5),
             html.Div(id="stats-2d__tables"),
-            html.Div(id='stats-2d__buttons'),
-            html.Div(id='stats-2d__chart'),
+            html.Div([
+                html.Label("Wybierz zakres wierszy:"),
+                dcc.Input(id='start-row', type='number', placeholder='Początkowy wiersz', min=0, max=len(df) - 1,
+                          value=0),
+                dcc.Input(id='end-row', type='number', placeholder='Końcowy wiersz', min=0, max=len(df) - 1,
+                          value=len(df) - 1)
+            ]),
+            html.Div(id='stats-2d__charts'),
             html.Div(id='stats-2d__reverse'),
         ])
 
