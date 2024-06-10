@@ -1,8 +1,8 @@
 from dash import dcc, html, callback, Input, Output, State, no_update
 from dash.exceptions import PreventUpdate
+from pandas.core.dtypes.common import is_numeric_dtype
 
 from eda.destats import *
-from eda.data_table.column_type import is_number_type
 from eda.components import H2, H3, H6, P, GridDiv
 
 
@@ -50,17 +50,15 @@ def register_2d_stats_callbacks():
         Input('2d-dropdown1', 'value'),
         Input('2d-dropdown2', 'value'),
         State('data-table', 'data'),
-        State('stored-dtypes', 'data'),
-
         prevent_initial_call=True
     )
-    def computing_stats(x, y, data, dtypes):
+    def computing_stats(x, y, data):
         if x is None or y is None:
             raise PreventUpdate
 
         df = pd.DataFrame(data)
 
-        if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
+        if is_numeric_dtype(df[x]) and is_numeric_dtype(df[y]):
             return numeric_stats(df, x, y)
         else:
             return no_update
