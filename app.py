@@ -55,16 +55,17 @@ app = Dash(__name__,
 
 app.layout = html.Div(id="main", children=[
 
+    dcc.Store(id="dataframe"),
+    dcc.Store(id="base_dtypes"),
+    dcc.Store(id="file_column_separator"),
+    dcc.Store(id="file_decimal_separator"),
+
     H1("Analiza Eksploracyjna"),
     html.Div(id="output", className="py-6"),
     html.Div(id="data_correction_output", className="py-6"),
     html.Div(id="statistic_output", className="py-6"),
     html.Div(id="statistic_2d_output", className="py-6"),
     html.Footer(className="h-40"),
-
-    dcc.Store(id="dataframe"),
-    dcc.Store("file_column_separator"),
-    dcc.Store("file_decimal_separator"),
 
 ])
 
