@@ -21,7 +21,6 @@ from eda.data_table.column_type import (
     convert_numeric_strings_to_numbers,
     convert_column_data_type,
 )
-from eda.file_input.csv_parser import CSVParser
 
 
 def register_dataframe_callbacks():
@@ -217,11 +216,18 @@ def register_dataframe_callbacks():
         Output("download-file", "data"),
         Input("download", "n_clicks"),
         State("stored-dataframe", "data"),
+        State("file_column_separator", "data"),
+        State("file_decimal_separator", "data")
     )
-    def save_csv(n_clicks, df_json):
+    def save_csv(
+        n_clicks,
+        df_json,
+        column_separator: str,
+        decimal_separator: str
+    ):
         if n_clicks and n_clicks > 0:
             df = pd.read_json(StringIO(df_json))
-            df_csv = df.to_csv(sep=CSVParser.current_separator)
+            df_csv = df.to_csv(sep=column_separator, decimal=decimal_separator)
             return {"content": df_csv, "filename": "data.csv"}
         else:
             raise PreventUpdate
