@@ -1,7 +1,8 @@
-from collections import namedtuple
 from typing import Literal, NamedTuple
 import re
+
 import pandas as pd
+import numpy as np
 
 ColumnType = Literal[
     "int64",
@@ -98,14 +99,11 @@ def convert_column_data_type(
         case "object":
             df[column_name] = column.astype(str)
         case "int64":
-            df[column_name] = pd.to_numeric(
-                column,
-                downcast="integer") \
+            df[column_name] = np.floor(pd.to_numeric(column)) \
                 .astype("Int64")
         case "float64":
             if column.dtype == "object":
                 df[column_name] = pd.to_numeric(
-                    column.str.replace(",", "."),
                     errors="coerce"
                 )
             else:
