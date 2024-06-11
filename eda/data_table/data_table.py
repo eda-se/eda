@@ -218,7 +218,7 @@ def register_dataframe_callbacks():
         Input("download", "n_clicks"),
         State("stored-dataframe", "data"),
     )
-    def download(n_clicks, df_json):
+    def save_csv(n_clicks, df_json):
         if n_clicks and n_clicks > 0:
             df = pd.read_json(StringIO(df_json))
             df_csv = df.to_csv(sep=CSVParser.current_separator)
