@@ -63,6 +63,8 @@ app.layout = html.Div(id="main", children=[
     html.Footer(className="h-40"),
 
     dcc.Store(id="dataframe"),
+    dcc.Store("file_column_separator"),
+    dcc.Store("file_decimal_separator"),
 
 ])
 

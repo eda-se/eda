@@ -9,3 +9,7 @@ body {
   padding: 2rem;
   background: url("../image/main-bg.png") top center no-repeat;
 }
+
+.Select-control, .Select.is-open .Select-control, .Select-menu-outer {
+  border: 1px solid rgb(213, 201, 225);
+}
