@@ -13,12 +13,15 @@ from dash import (
     no_update,
 )
 
+from dash.exceptions import PreventUpdate
+
 from eda.components import H2, H3, P, Button, GridDiv
 from eda.data_table.column_type import (
     column_info,
     convert_numeric_strings_to_numbers,
     convert_column_data_type,
 )
+from eda.file_input.csv_parser import CSVParser
 
 
 def register_dataframe_callbacks():
@@ -62,19 +65,19 @@ def register_dataframe_callbacks():
                 row_deletable=True,
                 page_size=15,
             ),
-            html.Button('Zapisz zmiany', id='save', n_clicks=0), html.Br(),
-            html.Button('Wróć do zapisanej wersji', id='reset-unsaved', n_clicks=0), html.Br(),
-            html.Button('Wróć do pierwotnej wersji', id='reset-all', n_clicks=0),
+
+            GridDiv(id="var-button-container", columns_count=4, margin_y=True, children=[
+                Button("Zapisz zmiany", id="save"),
+                Button("Wróć do zapisanej wersji", id="reset-unsaved"),
+                Button("Wróć do pierwotnej wersji", id="reset-all"),
+                Button("Pobierz CSV", id="download"),
+            ]),
 
             H3("Edytor zmiennych"),
             GridDiv(id="dropdown-container", columns_count=6),
             P(id="dropdown_status", margin_y=True),
 
-            GridDiv(id="var-button-container", columns_count=4, children=[
-                Button("Zapisz zmiany", id="save"),
-                Button("Wróć do zapisanej wersji", id="reset-unsaved"),
-                Button("Wróć do pierwotnej wersji", id="reset-all"),
-            ])
+            dcc.Download(id="download-file")
         ])
 
 
@@ -208,3 +211,17 @@ def register_dataframe_callbacks():
         }
 
         return df.to_json(date_format='iso'), stored_data_types
+
+
+    @callback(
+        Output("download-file", "data"),
+        Input("download", "n_clicks"),
+        State("stored-dataframe", "data"),
+    )
+    def save_csv(n_clicks, df_json):
+        if n_clicks and n_clicks > 0:
+            df = pd.read_json(StringIO(df_json))
+            df_csv = df.to_csv(sep=CSVParser.current_separator)
+            return {"content": df_csv, "filename": "data.csv"}
+        else:
+            raise PreventUpdate

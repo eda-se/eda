@@ -177,7 +177,7 @@ def outliers_dropdown(df: pd.DataFrame) -> html.Div:
         H3("Poprawa wartości odstających"),
 
         html.Div(className="py-2", children=[
-            H4("Wybierz zmienną"),
+            H4("Wybierz zmienne"),
             dcc.Dropdown(id="outliers-column", options=col_options, placeholder="Zmienna", multi=True),
         ]),
         html.Div(className="py-2", children=[
