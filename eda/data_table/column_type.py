@@ -1,7 +1,8 @@
-from collections import namedtuple
 from typing import Literal, NamedTuple
 import re
+
 import pandas as pd
+import numpy as np
 
 ColumnType = Literal[
     "int64",
@@ -60,6 +61,12 @@ def is_categorical_type(column: pd.Series) -> bool:
         or column.dtype == column_info[3].type
 
 
+def convert_dataframe_float_columns_to_int(df: pd.DataFrame) -> None:
+    for name, values in df.items():
+        if values.dtype == column_info[1].type and is_int_column(values):
+            convert_column_data_type(df, name, "int64")
+
+
 def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
     for name, values in df.items():
         if values.dtype == "object" or values.dtype == "float64":
@@ -79,14 +86,11 @@ def convert_column_data_type(
         case "object":
             df[column_name] = column.astype(str)
         case "int64":
-            df[column_name] = pd.to_numeric(
-                    column,
-                    downcast="integer") \
+            df[column_name] = np.floor(pd.to_numeric(column)) \
                 .astype("Int64")
         case "float64":
             if column.dtype == "object":
                 df[column_name] = pd.to_numeric(
-                    column.str.replace(",", "."),
                     errors="coerce"
                 )
             else:
@@ -99,3 +103,21 @@ def convert_column_data_type(
             )
         case "category":
             df[column_name] = column.astype("category")
+
+
+def get_types_from_dataframe(df: pd.DataFrame) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for column in df:
+        column_type = df[column].dtype.name.lower()
+        for cinfo in column_info:
+            if column_type == cinfo.type:
+                result[column] = cinfo.type
+                break
+
+        if column not in result:
+            if column_info[2].type in column_type:
+                result[column] = column_info[2].type
+            else:
+                result[column] = column_info[3].type
+
+    return result
