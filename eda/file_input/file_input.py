@@ -95,7 +95,8 @@ def register_input_callbacks():
             raise PreventUpdate
 
         try:
-            result = CSVParser.get_dataframe_from_contents(content)
+            parser = CSVParser(column_separator, decimal_separator)
+            result = parser.get_dataframe_from_contents(content)
             return result.to_json(), dash.no_update
         except TypeError as e:
             return dash.no_update, html.Div(str(e))
