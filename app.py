@@ -76,6 +76,5 @@ register_data_correction_callbacks()
 server = app.server
 
 if __name__ == "__main__":
-    server.run()
     if DEVELOPMENT:
         app.run(debug=True)
