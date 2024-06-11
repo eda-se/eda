@@ -4,7 +4,10 @@ import dash_ag_grid as dag
 from pandas.core.dtypes.common import is_numeric_dtype
 
 from eda.destats import *
-from eda.data_table.column_type import is_categorical_type
+from eda.data_table.column_type import (
+    is_numeric_type,
+    is_categorical_type
+)
 from eda.components import H2, H3, H6, P, GridDiv
 
 
@@ -24,17 +27,20 @@ def register_2d_stats_callbacks():
             H2("Statystki opisowe 2D"),
             H3("Wybór zmiennych"),
             GridDiv(id="stats-2d__dropdown", columns_count=4),
-            GridDiv(id="stats-2d__summary", columns_count=5),
-            html.Div(id="stats-2d__tables"),
-            html.Div([
-                html.Label("Wybierz zakres wierszy:"),
-                dcc.Input(id='start-row', type='number', placeholder='Początkowy wiersz', min=0, max=len(df) - 1,
-                          value=0),
-                dcc.Input(id='end-row', type='number', placeholder='Końcowy wiersz', min=0, max=len(df) - 1,
-                          value=len(df) - 1)
+
+            html.Div(id="stats-2d__main", className="py-4 hidden", children=[
+                GridDiv(id="stats-2d__summary", columns_count=5),
+                html.Div(id="stats-2d__tables"),
+                html.Div([
+                    html.Label("Wybierz zakres wierszy:"),
+                    dcc.Input(id='start-row', type='number', placeholder='Początkowy wiersz', min=0, max=len(df) - 1,
+                            value=0),
+                    dcc.Input(id='end-row', type='number', placeholder='Końcowy wiersz', min=0, max=len(df) - 1,
+                            value=len(df) - 1)
+                ]),
+                html.Div(id='stats-2d__charts'),
+                html.Div(id='stats-2d__reverse'),
             ]),
-            html.Div(id='stats-2d__charts'),
-            html.Div(id='stats-2d__reverse'),
         ])
 
     @callback(
@@ -53,26 +59,39 @@ def register_2d_stats_callbacks():
 
     @callback(
         Output('stats-2d__summary', 'children'),
+        Output("stats-2d__main", "className"),
         Input('2d-dropdown1', 'value'),
         Input('2d-dropdown2', 'value'),
         State('data-table', 'data'),
+        State("stored-dtypes", "data"),
+        State("stats-2d__main", "className"),
         prevent_initial_call=True
     )
-    def computing_stats(x, y, data):
+    def computing_stats(
+        x,
+        y,
+        data,
+        dtypes: dict[str, str],
+        container_class_name: str
+    ):
         if x is None or y is None:
             raise PreventUpdate
 
         df = pd.DataFrame(data)
+        class_name = container_class_name.replace("hidden", "block")
 
-        if is_numeric_dtype(df[x]) and is_numeric_dtype(df[y]):
-            return numeric_stats(df, x, y)
-        if ((is_categorical_type(df[x]) and is_numeric_dtype(df[y]))
-                or (is_categorical_type(df[y]) and is_numeric_dtype(df[x]))):
-            if is_categorical_type(df[y]):
+        if is_numeric_type(dtypes[x]) and is_numeric_type(dtypes[y]):
+            return numeric_stats(df, x, y), class_name
+
+        is_num_cat \
+            =  is_categorical_type(dtypes[x]) and is_numeric_dtype(dtypes[y]) \
+            or is_categorical_type(dtypes[y]) and is_numeric_dtype(dtypes[x])
+        if (is_num_cat):
+            if is_categorical_type(dtypes[y]):
                 x, y = y, x
-            return create_categorical_tables(df, x, y)
+            return create_categorical_tables(df, x, y), class_name
 
-        return None
+        return no_update, no_update
 
     def numeric_stats(data, x, y):
         labels = [
@@ -97,38 +116,39 @@ def register_2d_stats_callbacks():
             for label, function in zip(labels, functions)
         ]
 
-        def linear_regression_wrapper(result_dict):
+        def linear_regression_wrapper(regression, confidence):
+            slope_confidence = np.round(confidence.get('slope'), 3)
+            intercept_confidence = np.round(confidence.get('intercept'), 3)
             return html.Div(children=[
                 H6("Regresja liniowa"),
                 P(children=[
                     html.Span("Współczynnik nachylenia: ", className="text-stone-900"),
-                    html.Pre(np.round(result_dict.get("slope"), 3)),
                 ]),
-                P(children=[
+                html.Pre(
+                    f"{np.round(regression.get('intercept'), 3)}, ",
+                    className="inline"
+                ),
+                html.Pre(
+                    f"[{intercept_confidence[0]}, {intercept_confidence[1]}]",
+                    className="confidence"
+                ),
+                # html.Span("95% przedział ufności", className="text-xs text-stone-700"),
+                P(className="mt-4", children=[
                     html.Span("Przecięcie: ", className="text-stone-900"),
-                    html.Pre(np.round(result_dict.get("intercept"), 3)),
                 ]),
+                html.Pre(
+                    f"{np.round(regression.get('slope'), 3)}, ",
+                    className="inline"
+                ),
+                html.Pre(
+                    f"[{slope_confidence[0]}, {slope_confidence[1]}]",
+                    className="confidence"
+                ),
             ]),
 
-        def confidence_regression_wrapper(result_dict):
-            slope = np.round(result_dict.get('slope'), 3)
-            intercept = np.round(result_dict.get('intercept'), 3)
-            return html.Div(children=[
-                H6("Przedział ufności"),
-                P(children=[
-                    html.Span("Przedział ufności dla współczynnika nachylenia: ", className="text-stone-900"),
-                    html.Pre(f"[{slope[0]}, {slope[1]}]"),
-                ]),
-                P(children=[
-                    html.Span("Przedział ufności dla przecięcia: ", className="text-stone-900"),
-                    html.Pre(f"[{intercept[0]}, {intercept[1]}]"),
-                ]),
-            ]),
-
-        result = linear_regression(x, y)
-        stats.extend(linear_regression_wrapper(result))
-        result = confidence_interval(x, y)
-        stats.extend(confidence_regression_wrapper(result))
+        regression = linear_regression(x, y)
+        confidence = confidence_interval(x, y)
+        stats.extend(linear_regression_wrapper(regression, confidence))
 
         return stats
 

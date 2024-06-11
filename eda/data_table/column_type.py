@@ -56,9 +56,18 @@ def is_float_column(column: pd.Series) -> bool:
     return column.apply(__is_float).any()
 
 
-def is_categorical_type(column: pd.Series) -> bool:
-    return column.dtype == column_info[4].type \
-        or column.dtype == column_info[3].type
+def is_numeric_type(column_type: str) -> bool:
+    return column_type == column_info[0].type \
+        or column_type == column_info[1].type
+
+
+def is_date_type(column_type: str) -> bool:
+    return column_type == column_info[2].type
+
+
+def is_categorical_type(column_type: str) -> bool:
+    return column_type == column_info[4].type \
+        or column_type == column_info[3].type
 
 
 def convert_dataframe_float_columns_to_int(df: pd.DataFrame) -> None:

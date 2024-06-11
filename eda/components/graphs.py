@@ -3,7 +3,11 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 import plotly.express as px
 
-from eda.data_table.column_type import is_number_type, is_categorical_type, is_data_type
+from eda.data_table.column_type import (
+    is_numeric_type,
+    is_categorical_type,
+    is_date_type
+)
 
 
 def register_graph_callbacks():
@@ -28,7 +32,7 @@ def register_graph_callbacks():
             generate_scatter_plot(clicks, data, x, y, start_row, end_row),
             heatmap_chart(clicks, data, x, y, start_row, end_row),
         ]
-        if is_data_type(dtypes[x]):
+        if is_date_type(dtypes[x]):
             charts.extend([
                 generate_line_graph(data, x, y, start_row, end_row)
             ])
@@ -39,12 +43,12 @@ def register_graph_callbacks():
                     heatmap_chart(clicks, data, x, y, start_row, end_row),
                 ]
             else:
-                if is_number_type(dtypes[y]):
+                if is_numeric_type(dtypes[y]):
                     charts = [
                         generate_scatter_plot(clicks, data, x, y, start_row, end_row),
                         generate_box_plot(data, x, y, start_row, end_row)
                     ]
-        if is_number_type(dtypes[x]) and is_number_type(dtypes[y]):
+        if is_numeric_type(dtypes[x]) and is_numeric_type(dtypes[y]):
             charts = [
                 generate_scatter_graph_with_trend(clicks, data, x, y, start_row, end_row),
                 heatmap_chart(clicks, data, x, y, start_row, end_row),
