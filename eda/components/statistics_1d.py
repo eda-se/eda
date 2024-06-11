@@ -35,8 +35,7 @@ def register_1d_stats_callbacks():
 
                 html.Div(id="stats-1d__charts", className="my-8", children=[
                     H3("Wizualizacja danych"),
-                    GridDiv(id="stats-1d__chart-buttons", columns_count=4),
-                    html.Div(id="stats-1d__chart"),
+                    html.Div(id="stats-1d__charts"),
                 ]),
             ])
 
@@ -63,8 +62,7 @@ def register_1d_stats_callbacks():
 
     @callback(
         Output('stats-1d__summary', 'children'),
-        Output('stats-1d__chart-buttons', 'children'),
-        Output('stats-1d__chart', 'children', allow_duplicate=True),
+        Output('stats-1d__charts', 'children'),
         Output("stats-1d__main", "className"),
         Input('1d-dropdown', 'value'),
         State('data-table', 'data'),
@@ -79,18 +77,18 @@ def register_1d_stats_callbacks():
         values = df[col]
 
         if is_numeric_dtype(values):
-            buttons = [
-                Button("Histogram", id="make-histogram-chart"),
-                Button("Pudełkowy", id="make-box-chart"),
-                Button("Skrzypcowy", id="make-violin-chart")
+            charts = [
+                histogram_chart(col, data),
+                box_chart(col, data),
+                violin_chart(col, data)
             ]
-            return numeric_stats(values), buttons, None, chart_class_name.replace("hidden", "block")
+            return numeric_stats(values), charts, chart_class_name.replace("hidden", "block")
         else:
-            buttons = [
-                Button("Słupkowy", id="make-bar-chart"),
-                Button("Kołowy", id="make-pie-chart")
+            charts = [
+                bar_chart(col, data),
+                pie_chart(col, data)
             ]
-            return categorical_stats(values), buttons, None, chart_class_name.replace("hidden", "block")
+            return categorical_stats(values), charts, chart_class_name.replace("hidden", "block")
 
     def numeric_stats(values):
         labels = [
@@ -268,17 +266,7 @@ def register_1d_stats_callbacks():
             )
         ])
 
-    @callback(
-        Output('stats-1d__chart', 'children', allow_duplicate=True),
-        Input("make-histogram-chart", "n_clicks_timestamp"),
-        State('1d-dropdown', 'value'),
-        State('data-table', 'data'),
-        prevent_initial_call=True
-    )
-    def histogram_chart(n_click, column, data):
-        if n_click is None or column is None or data is None:
-            raise PreventUpdate
-
+    def histogram_chart(column, data):
         df = pd.DataFrame(data)
 
         fig = px.histogram(df, x=column, nbins=10,  # You can adjust 'nbins' as needed
@@ -289,17 +277,7 @@ def register_1d_stats_callbacks():
 
         return dcc.Graph(figure=fig)
 
-    @callback(
-        Output('stats-1d__chart', 'children', allow_duplicate=True),
-        Input("make-bar-chart", "n_clicks_timestamp"),
-        State('1d-dropdown', 'value'),
-        State('data-table', 'data'),
-        prevent_initial_call=True
-    )
-    def bar_chart(n_click, column, data):
-        if n_click is None or column is None or data is None:
-            raise PreventUpdate
-
+    def bar_chart(column, data):
         df = pd.DataFrame(data)
         values = df[column]
 
@@ -314,17 +292,7 @@ def register_1d_stats_callbacks():
 
         return dcc.Graph(figure=fig)
 
-    @callback(
-        Output('stats-1d__chart', 'children', allow_duplicate=True),
-        Input("make-pie-chart", "n_clicks_timestamp"),
-        State('1d-dropdown', 'value'),
-        State('data-table', 'data'),
-        prevent_initial_call=True
-    )
-    def pie_chart(n_click, column, data):
-        if n_click is None or column is None or data is None:
-            raise PreventUpdate
-
+    def pie_chart(column, data):
         df = pd.DataFrame(data)
         values = df[column]
 
@@ -336,33 +304,13 @@ def register_1d_stats_callbacks():
 
         return dcc.Graph(figure=fig)
 
-    @callback(
-        Output('stats-1d__chart', 'children', allow_duplicate=True),
-        Input("make-box-chart", "n_clicks_timestamp"),
-        State('1d-dropdown', 'value'),
-        State('data-table', 'data'),
-        prevent_initial_call=True
-    )
-    def box_chart(n_click, column, data):
-        if n_click is None or column is None or data is None:
-            raise PreventUpdate
-
+    def box_chart(column, data):
         df = pd.DataFrame(data)
         fig = px.box(df, y=column, title=f'Wykres pudełkowy dla kolumny {column}')
 
         return dcc.Graph(figure=fig)
 
-    @callback(
-        Output('stats-1d__chart', 'children', allow_duplicate=True),
-        Input("make-violin-chart", "n_clicks_timestamp"),
-        State('1d-dropdown', 'value'),
-        State('data-table', 'data'),
-        prevent_initial_call=True
-    )
-    def violin_chart(n_click, column, data):
-        if n_click is None or column is None or data is None:
-            raise PreventUpdate
-
+    def violin_chart(column, data):
         df = pd.DataFrame(data)
         fig = px.violin(df, y=column, title=f'Wykres skrzypcowy dla kolumny {column}')
 
