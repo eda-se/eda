@@ -3,6 +3,10 @@ from dash import html, dcc, callback, Input, State, Output
 from dash.exceptions import PreventUpdate
 
 from eda.file_input.csv_parser import CSVParser
+from eda.data_table.column_type import (
+    convert_dataframe_float_columns_to_int,
+    get_types_from_dataframe
+)
 from eda.components import P, GridDiv
 
 
@@ -80,9 +84,10 @@ def register_input_callbacks():
         return separator
 
     @callback(
-        Output('dataframe', 'data'),
-        Output('upload-error', 'children'),
-        Input('upload-csv-data', 'contents'),
+        Output("dataframe", "data"),
+        Output("base_dtypes", "data"),
+        Output("upload-error", "children"),
+        Input("upload-csv-data", "contents"),
         State("file_column_separator", "data"),
         State("file_decimal_separator", "data")
     )
@@ -97,6 +102,8 @@ def register_input_callbacks():
         try:
             parser = CSVParser(column_separator, decimal_separator)
             result = parser.get_dataframe_from_contents(content)
-            return result.to_json(), dash.no_update
+            convert_dataframe_float_columns_to_int(result)
+            types = get_types_from_dataframe(result)
+            return result.to_json(), types, dash.no_update
         except TypeError as e:
-            return dash.no_update, html.Div(str(e))
+            return dash.no_update, dash.no_update, html.Div(str(e))

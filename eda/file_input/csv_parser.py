@@ -1,6 +1,5 @@
 import base64
-import csv
-import io
+from io import StringIO
 
 import pandas as pd
 
@@ -15,10 +14,12 @@ class CSVParser:
         if content_type.startswith("data:text/csv"):
             decoded = base64.b64decode(content_string).decode("utf-8")
             df = pd.read_csv(
-                io.StringIO(decoded),
+                StringIO(decoded),
                 sep=self.column_separator,
-                decimal=self.decimal_separator
+                decimal=self.decimal_separator,
+                date_format="ISO8601"
             )
+            df = pd.read_json(StringIO(df.to_json(date_format="iso")))
             return df
         else:
             raise TypeError("Invalid content type")

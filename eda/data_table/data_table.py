@@ -1,4 +1,5 @@
 from io import StringIO
+from copy import copy
 
 import pandas as pd
 from dash import (
@@ -18,29 +19,24 @@ from dash.exceptions import PreventUpdate
 from eda.components import H2, H3, P, Button, GridDiv
 from eda.data_table.column_type import (
     column_info,
-    convert_numeric_strings_to_numbers,
     convert_column_data_type,
 )
 
 
 def register_dataframe_callbacks():
     @callback(
-        Output('output', 'children', allow_duplicate=True),
-        Input('dataframe', 'data'),
+        Output("output", "children", allow_duplicate=True),
+        Input("dataframe", "data"),
+        Input("base_dtypes", "data"),
         prevent_initial_call=True
     )
-    def render(df_json: str):
+    def render(df_json: str, base_dtypes: dict[str, str]) -> html.Div:
         df = pd.read_json(StringIO(df_json))
 
-        convert_numeric_strings_to_numbers(df)
-
-        string_dtypes = df.dtypes.astype(str).str.lower()
-        json_dataframe = df.to_json(date_format="iso")
-
         return html.Div([
-            dcc.Store(id='current-dtypes', data=string_dtypes.to_dict()),
-            dcc.Store(id='stored-dtypes', data=string_dtypes.to_dict()),
-            dcc.Store(id='stored-dataframe', data=json_dataframe),
+            dcc.Store(id="current-dtypes", data=copy(base_dtypes)),
+            dcc.Store(id="stored-dtypes", data=copy(base_dtypes)),
+            dcc.Store(id="stored-dataframe", data=df_json),
 
             H2("Przetwarzanie pliku"),
 
@@ -90,10 +86,7 @@ def register_dataframe_callbacks():
         for column in data_table_columns:
             column_name = column['name']
             column_id = column['id']
-
             column_type = current_data_types[column_id]
-            if 'datetime64' in column_type:
-                column_type = 'datetime64'
 
             dropdowns.append(
                 html.Div([
@@ -172,11 +165,11 @@ def register_dataframe_callbacks():
         Output('current-dtypes', 'data', allow_duplicate=True),
         Input('reset-all', 'n_clicks'),
         State('dataframe', 'data'),
+        State("base_dtypes", "data"),
         prevent_initial_call=True
     )
-    def reset_data_all(n_clicks, initial_data):
+    def reset_data_all(n_clicks, initial_data, base_dtypes: dict[str, str]):
         df = pd.read_json(StringIO(initial_data))
-        convert_numeric_strings_to_numbers(df)
 
         columns=[
             {
@@ -188,7 +181,7 @@ def register_dataframe_callbacks():
             for name in df.columns.tolist()
         ]
 
-        return df.to_dict('records'), columns, df.dtypes.astype(str).str.lower().to_dict()
+        return df.to_dict('records'), columns, copy(base_dtypes)
 
     @callback(
         Output('stored-dataframe', 'data'),
