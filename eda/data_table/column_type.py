@@ -73,6 +73,12 @@ def is_string_type(column_type: ColumnType) -> bool:
     return column_type == column_info[3].type
 
 
+def convert_dataframe_float_columns_to_int(df: pd.DataFrame) -> None:
+    for name, values in df.items():
+        if values.dtype == column_info[1].type and is_int_column(values):
+            convert_column_data_type(df, name, "int64")
+
+
 def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
     for name, values in df.items():
         if values.dtype == "object" or values.dtype == "float64":
@@ -112,3 +118,21 @@ def convert_column_data_type(
             )
         case "category":
             df[column_name] = column.astype("category")
+
+
+def get_types_from_dataframe(df: pd.DataFrame) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for column in df:
+        column_type = df[column].dtype.name.lower()
+        for cinfo in column_info:
+            if column_type == cinfo.type:
+                result[column] = cinfo.type
+                break
+
+        if column not in result:
+            if column_info[2].type in column_type:
+                result[column] = column_info[2].type
+            else:
+                result[column] = column_info[3].type
+
+    return result
