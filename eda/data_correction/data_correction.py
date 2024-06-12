@@ -19,7 +19,7 @@ from eda.components import H2, H3, H4, Button, GridDiv
 
 def register_data_correction_callbacks():
     @callback(
-        Output("data_correction_output", "children"),
+        Output("data-correction-container", "children"),
         Input("data-table", "data"),
         prevent_initial_call=True,
     )

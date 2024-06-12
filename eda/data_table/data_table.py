@@ -25,7 +25,9 @@ from eda.data_table.column_type import (
 
 def register_dataframe_callbacks():
     @callback(
-        Output("output", "children", allow_duplicate=True),
+        Output("data-edition-container", "children", allow_duplicate=True),
+        Output("upload-container", "className"),
+        Output("navigation", "className", allow_duplicate=True),
         Input("dataframe", "data"),
         Input("base_dtypes", "data"),
         prevent_initial_call=True
@@ -72,8 +74,10 @@ def register_dataframe_callbacks():
             GridDiv(id="dropdown-container", columns_count=6),
             P(id="dropdown_status", margin_y=True),
 
-            dcc.Download(id="download-file")
-        ])
+            dcc.Download(id="download-file"),
+
+            html.Div(id="data-correction-container", className="py-6 block"),
+        ]), "py-6 hidden", "w-full fixed inset-x-0 bottom-0 block"
 
 
     @callback(

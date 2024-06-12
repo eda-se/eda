@@ -12,8 +12,8 @@ from eda.components import P, GridDiv
 
 def register_input_callbacks():
     @callback(
-        Output('output', 'children'),
-        Input('output', 'id'),
+        Output("upload-container", "children"),
+        Input("upload-container", "id"),
     )
     def on_render(_):
         return html.Div(className="flex flex-col", children=[

@@ -1,6 +1,7 @@
 import os
 from dash import Dash, html, dcc
 
+from eda.components.navigation import navigation, register_navigation_callbacks
 from eda.components.graphs import register_graph_callbacks
 from eda.data_correction.data_correction import register_data_correction_callbacks
 from eda.file_input.file_input import register_input_callbacks
@@ -59,18 +60,25 @@ app.layout = html.Div(id="main", children=[
     dcc.Store(id="base_dtypes"),
     dcc.Store(id="file_column_separator"),
     dcc.Store(id="file_decimal_separator"),
+    dcc.Store(id="active_section_id", data="data-edition-container"),
 
     H1("Analiza Eksploracyjna"),
-    html.Div(id="output", className="py-6"),
-    html.Div(id="data_correction_output", className="py-6"),
-    html.Div(id="statistic_output", className="py-6"),
-    html.Div(id="statistic_2d_output", className="py-6"),
+    html.Div(id="upload-container", className="py-6 block"),
+    html.Div(id="data-edition-container", className="py-6 block"),
+    html.Div(id="statistic_output", className="py-6 hidden"),
+    html.Div(id="statistic_2d_output", className="py-6 hidden"),
+    html.Nav(
+        id="navigation",
+        className="w-full fixed inset-x-0 bottom-0 hidden",
+        children=navigation()
+    ),
     html.Footer(className="h-40"),
 
 ])
 
 register_input_callbacks()
 register_dataframe_callbacks()
+register_navigation_callbacks()
 register_1d_stats_callbacks()
 register_2d_stats_callbacks()
 register_graph_callbacks()
