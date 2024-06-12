@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from scipy.stats import zscore
 
@@ -59,7 +60,8 @@ def fix_outliers(
 
 
 def fix_outliers_remove(df: pd.DataFrame, column: str, outliers_index: list) -> pd.DataFrame:
-    df.drop(outliers_index, axis="rows", inplace=True)
+    for index in outliers_index:
+        df[column][index] = np.nan
     return df
 
 
