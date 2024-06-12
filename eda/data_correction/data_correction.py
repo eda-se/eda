@@ -92,9 +92,8 @@ def register_data_correction_callbacks():
             return no_update
 
     @callback(
-        Output("missing-values-table", "rowData", allow_duplicate=True),
-        Input("data-table", "data"),
-        prevent_initial_call=True,
+        Output("missing-values-table", "rowData"),
+        Input("data-table", "data")
     )
     def table_data(data):
         df = pd.DataFrame(data)
