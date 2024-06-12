@@ -27,7 +27,7 @@ def register_2d_stats_callbacks():
                 dcc.Input(id='end-row', type='number', placeholder='Końcowy wiersz', min=0, max=len(df) - 1,
                           value=len(df) - 1)
             ]),
-            html.Div(id='stats-2d__charts'),
+            GridDiv(id='stats-2d__charts', columns_count=2),
             html.Div(id='stats-2d__reverse'),
         ])
 
