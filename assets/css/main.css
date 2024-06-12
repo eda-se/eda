@@ -11,6 +11,10 @@ body {
   background: url("../image/main-bg.png") top center no-repeat fixed;
 }
 
+#navigation {
+  z-index: 2137;
+}
+
 .Select-control, .Select.is-open .Select-control, .Select-menu-outer {
   border: 1px solid rgb(213, 201, 225);
 }
