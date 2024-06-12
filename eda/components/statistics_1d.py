@@ -35,7 +35,7 @@ def register_1d_stats_callbacks():
 
                 html.Div(id="stats-1d__charts", className="my-8", children=[
                     H3("Wizualizacja danych"),
-                    html.Div(id="stats-1d__charts"),
+                    GridDiv(id="stats-1d__charts", columns_count=2),
                 ]),
             ])
 
