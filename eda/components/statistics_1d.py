@@ -1,14 +1,14 @@
 from io import StringIO
 
-from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
+from dash import dcc, html, callback, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_ag_grid as dag
 import plotly.express as px
 from pandas.core.dtypes.common import is_numeric_dtype
 
-
 from eda.destats import *
-from eda.components import H2, H3, H6, P, Button, GridDiv
+from eda.components import H2, H3, H6, P, GridDiv
+from eda.data_table.column_type import is_number_type, is_categorical_type
 
 
 def register_1d_stats_callbacks():
@@ -25,7 +25,7 @@ def register_1d_stats_callbacks():
         return html.Div(id="stats-1d", children=[
             H2("Statystki opisowe 1D"),
 
-            html.Div(id="stats-1d__dropdown"),
+            html.Div(id="stats-1d__multiselect"),
 
             html.Div(id="stats-1d__main", className="py-4 hidden", children=[
                 html.Div(className="my-2", children=[
@@ -42,7 +42,7 @@ def register_1d_stats_callbacks():
         ])
 
     @callback(
-        Output('stats-1d__dropdown', 'children'),
+        Output('stats-1d__multiselect', 'children'),
         Input('data-table', 'data'),
         prevent_initial_call=True
     )
@@ -50,12 +50,13 @@ def register_1d_stats_callbacks():
         df = pd.DataFrame(data_table)
         options = [{'label': col, 'value': col} for col in df.columns]
         dropdown = html.Div([
-            H3("Wybór zmiennej"),
+            H3("Wybór zmiennych"),
             dcc.Dropdown(
-                id="1d-dropdown",
+                id='multi-select-dropdown',
                 options=options,
-                placeholder="Zmienna"
-            )
+                multi=True,
+                placeholder="Wybierz zmienne"
+            ),
         ])
 
         return dropdown
@@ -64,33 +65,42 @@ def register_1d_stats_callbacks():
         Output('stats-1d__summary', 'children'),
         Output('stats-1d__charts', 'children'),
         Output("stats-1d__main", "className"),
-        Input('1d-dropdown', 'value'),
+        Input('multi-select-dropdown', 'value'),
         State('data-table', 'data'),
+        State('stored-dtypes', 'data'),
         State("stats-1d__main", "className"),
         prevent_initial_call=True
     )
-    def computing_stats(col, data, chart_class_name):
-        if col is None:
+    def computing_stats(columns, data, dtypes, chart_class_name):
+        if columns is None:
             raise PreventUpdate
 
         df = pd.DataFrame(data)
-        values = df[col]
+        numeric_columns = []
+        categorical_columns = []
+        charts = []
 
-        if is_numeric_dtype(values):
-            charts = [
-                histogram_chart(col, data),
-                box_chart(col, data),
-                violin_chart(col, data)
-            ]
-            return numeric_stats(values), charts, chart_class_name.replace("hidden", "block")
-        else:
-            charts = [
-                bar_chart(col, data),
-                pie_chart(col, data)
-            ]
-            return categorical_stats(values), charts, chart_class_name.replace("hidden", "block")
+        for col in columns:
+            if is_number_type(dtypes[col]):
+                numeric_columns.append(col)
+                charts.extend([
+                    histogram_chart(col, data),
+                    box_chart(col, data),
+                    violin_chart(col, data)
+                ])
+            else:
+                categorical_columns.append(col)
+                charts.extend([
+                    bar_chart(col, data),
+                    pie_chart(col, data)
+                ])
 
-    def numeric_stats(values):
+        return (numeric_stats(numeric_columns, df) + categorical_stats(categorical_columns,df),
+                charts, chart_class_name.replace("hidden", "block"))
+
+    def numeric_stats(columns, df):
+        if not columns:
+            return []
         labels = [
             "Liczba pustych wartości",
             "Mediana",
@@ -101,44 +111,46 @@ def register_1d_stats_callbacks():
             "Skośność/asymetria rozkładu"
         ]
         functions = [
-            na_count_1d(values),
-            median_1d(values),
-            mean_1d(values),
-            std_deviation_1d(values),
-            variance_1d(values),
-            range_1d(values),
-            skewness_1d(values)
+            na_count_1d,
+            median_1d,
+            mean_1d,
+            std_deviation_1d,
+            variance_1d,
+            range_1d,
+            skewness_1d
         ]
-        quantile_values = quantiles_1d(values, [0.25, 0.5, 0.75])
 
         stats = [
-            html.Div([
+            html.Div(children=[
                 H6(label),
-                P(children=html.Pre(np.round(function, 3)))
+                P(children=[html.Pre(f"{col}: {np.round(function(df[col]), 3)}") for col in columns])
             ])
             for label, function in zip(labels, functions)
         ]
         stats += [
-            html.Div([
+            html.Div(children=[
                 H6("Kwantyle"),
                 P(className="stats__paragraph", children=[
                     "¼",
-                    html.Pre(
-                        np.round(quantile_values[0.25], 3),
+                    html.Pre(children=[
+                        f"{col}: {np.round(quantiles_1d(df[col], [0.25])[0.25], 3)}\n"
+                        for col in columns],
                         className="stats__value"
                     ),
                 ]),
                 P(className="stats__paragraph", children=[
                     "½",
-                    html.Pre(
-                        np.round(quantile_values[0.5], 3),
+                    html.Pre(children=[
+                        f"{col}: {np.round(quantiles_1d(df[col], [0.5])[0.5], 3)}\n"
+                        for col in columns],
                         className="stats__value"
                     ),
                 ]),
                 P(className="stats__paragraph", children=[
                     "¾",
-                    html.Pre(
-                        np.round(quantile_values[0.75], 3),
+                    html.Pre(children=[
+                        f"{col}: {np.round(quantiles_1d(df[col], [0.75])[0.75], 3)}\n"
+                        for col in columns],
                         className="stats__value"
                     ),
                 ]),
@@ -147,42 +159,55 @@ def register_1d_stats_callbacks():
 
         return stats
 
-    def categorical_stats(values):
-        labels = [
-            "Liczba wartości brakujących",
-        ]
-        functions = [
-            na_count_1d(values),
-        ]
+    def categorical_stats(columns, df):
+        if not columns:
+            return []
+        labels = [col for col in columns]
+        functions = [na_count_1d(df[col]) for col in columns]
 
         stats = [
-            html.Div([
-                H6(label),
-                P(children=html.Pre(np.round(function, 3)))
-            ])
-            for label, function in zip(labels, functions)
+            html.Div(H6("Liczba wartości brakujących")),
+            P(children=[f"{label}: {np.round(func, 3)}" for label, func in zip(labels, functions)])
         ]
 
         return stats
 
     @callback(
         Output('stats-1d__details', 'children'),
-        Input('1d-dropdown', 'value'),
+        Input('multi-select-dropdown', 'value'),
         State('data-table', 'data'),
+        State('stored-dtypes', 'data'),
         prevent_initial_call=True
     )
-    def generate_tables(col, data):
-        if data is None or col is None:
+    def generate_tables(columns, data, dtypes):
+        if data is None or columns is None:
             raise PreventUpdate
 
         df = pd.DataFrame(data)
-        values = df[col]
 
-        if is_numeric_dtype(values):
-            return numeric_tables(values)
-        return categorical_tables(values)
+        numeric_columns = []
+        categorical_columns = []
+        numeric_html_components = []
+        categorical_html_components = []
 
-    def numeric_tables(values):
+        for col in columns:
+            if is_number_type(dtypes[col]):
+                numeric_columns.append(col)
+            elif is_categorical_type(dtypes[col]):
+                categorical_columns.append(col)
+
+        for col in numeric_columns:
+            numeric_html_components.append(numeric_tables(col, df))
+        for col in categorical_columns:
+            categorical_html_components.append(categorical_tables(col, df))
+
+        return html.Div(className="flex flex-col", children=[
+            GridDiv(columns_count=4, children=numeric_html_components),
+            GridDiv(columns_count=2, children=categorical_html_components),
+        ])
+
+    def numeric_tables(column, df):
+        values = df[column]
         mode_values = mode_1d(values)
         values_df = pd.DataFrame(
             data={
@@ -198,8 +223,8 @@ def register_1d_stats_callbacks():
 
         numeric_column_name = "Zmienna numeryczna"
 
-        return html.Div(children=[
-            H6("Moda"),
+        return html.Div(className="my-4", children=[
+            H6(f"Moda dla {column}"),
             P(children=mode_paragraph_content),
             dag.AgGrid(
                 id="stats-1d-numeric-table",
@@ -212,7 +237,7 @@ def register_1d_stats_callbacks():
                 ],
                 style={
                     "height": min(values_df.shape[0], MAX_ROWS) * ROW_HEIGHT
-                        + HEADER_ROW_HEIGHT + 2,
+                              + HEADER_ROW_HEIGHT + 2,
                     "overflow": "hidden"
                     if values_df.shape[0] <= MAX_ROWS
                     else "auto"
@@ -220,7 +245,8 @@ def register_1d_stats_callbacks():
             ),
         ])
 
-    def categorical_tables(values):
+    def categorical_tables(column, df):
+        values = df[column]
         count_values = count_1d(values)
         frequency_values = (100 * proportion_1d(values)).round(decimals=1)
         values_df = pd.DataFrame(
@@ -235,8 +261,8 @@ def register_1d_stats_callbacks():
         count_column_name = "Liczebność"
         frequency_column_name = "Częstotliwość [%]"
 
-        return html.Div(className="mt-2", children=[
-            H6("Liczebność i częstotliwosć"),
+        return html.Div(className="mt-4", children=[
+            H6(f"Liczebność i częstotliwosć dla {column}"),
             dag.AgGrid(
                 id="stats-1d-categorical-table",
                 rowData=values_df.to_dict("records"),
@@ -258,7 +284,7 @@ def register_1d_stats_callbacks():
                 ],
                 style={
                     "height": min(values_df.shape[0], MAX_ROWS) * ROW_HEIGHT
-                            + HEADER_ROW_HEIGHT + 2,
+                              + HEADER_ROW_HEIGHT + 2,
                     "overflow": "hidden"
                     if values_df.shape[0] <= MAX_ROWS
                     else "auto"
@@ -269,7 +295,7 @@ def register_1d_stats_callbacks():
     def histogram_chart(column, data):
         df = pd.DataFrame(data)
 
-        fig = px.histogram(df, x=column, nbins=10,  # You can adjust 'nbins' as needed
+        fig = px.histogram(df, x=column, nbins=10,
                            title=f'Histogram wartości dla {column}',
                            labels={'count': 'Liczba wystąpień', column: 'Wartość'})
 
