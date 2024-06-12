@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 import numpy as np
 from scipy.stats import pearsonr, spearmanr, skew
 from sklearn.linear_model import LinearRegression
@@ -58,7 +59,17 @@ def skewness_1d(values: pd.Series) -> float:
 
 # 2D
 def clean_columns(x: pd.Series, y: pd.Series) -> tuple[pd.Series, pd.Series]:
-    mask = ~np.isnan(x) & ~np.isnan(y) & ~np.isinf(x) & ~np.isinf(y)
+    mask = np.ones(x.shape[0], dtype=bool)
+    if is_numeric_dtype(x):
+        mask &= ~np.isnan(x) & ~np.isinf(x)
+    else:
+        mask &= ~x.isna()
+    if is_numeric_dtype(y):
+        # print(~np.isnan(y), ~np.isinf(y), (~np.isnan(y)) & (~np.isinf(y)), sep="\n\n\n")
+        mask &= ~np.isnan(y) & ~np.isinf(y)
+    else:
+        mask &= ~y.isna()
+
     return x[mask], y[mask]
 
 

@@ -56,22 +56,18 @@ def is_float_column(column: pd.Series) -> bool:
     return column.apply(__is_float).any()
 
 
-def is_number_type(column_type: str) -> bool:
+def is_numeric_type(column_type: str) -> bool:
     return column_type == column_info[0].type \
         or column_type == column_info[1].type
+
+
+def is_date_type(column_type: str) -> bool:
+    return column_type == column_info[2].type
 
 
 def is_categorical_type(column_type: str) -> bool:
     return column_type == column_info[4].type \
         or column_type == column_info[3].type
-
-
-def is_data_type(column_type: ColumnType) -> bool:
-    return column_type == column_info[2].type
-
-
-def is_string_type(column_type: ColumnType) -> bool:
-    return column_type == column_info[3].type
 
 
 def convert_dataframe_float_columns_to_int(df: pd.DataFrame) -> None:
@@ -90,9 +86,9 @@ def convert_numeric_strings_to_numbers(df: pd.DataFrame) -> None:
 
 
 def convert_column_data_type(
-        df: pd.DataFrame,
-        column_name: str,
-        column_type: ColumnType
+    df: pd.DataFrame,
+    column_name: str,
+    column_type: ColumnType
 ) -> None:
     column = df[column_name]
     match column_type:

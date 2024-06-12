@@ -14,3 +14,19 @@ body {
 .Select-control, .Select.is-open .Select-control, .Select-menu-outer {
   border: 1px solid rgb(213, 201, 225);
 }
+
+.confidence {
+  display: inline-block;
+  position: relative;
+}
+
+.confidence::after {
+  content: "95% przedział ufności";
+  color: rgb(120 113 108);
+  font-size: .75em;
+  display: block;
+  position: absolute;
+  bottom: -1.25em;
+  left: 50%;
+  transform: translateX(-50%);
+}
