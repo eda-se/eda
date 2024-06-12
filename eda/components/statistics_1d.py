@@ -1,14 +1,14 @@
 from io import StringIO
 
-from dash import dcc, html, callback, Input, Output, State, dash_table, no_update
+from dash import dcc, html, callback, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_ag_grid as dag
 import plotly.express as px
 from pandas.core.dtypes.common import is_numeric_dtype
 
 from eda.destats import *
-from eda.components import H2, H3, H6, P, Button, GridDiv
-from eda.data_table.column_type import is_number_type
+from eda.components import H2, H3, H6, P, GridDiv
+from eda.data_table.column_type import is_number_type, is_categorical_type
 
 
 def register_1d_stats_callbacks():
@@ -121,14 +121,14 @@ def register_1d_stats_callbacks():
         ]
 
         stats = [
-            html.Div([
+            html.Div(children=[
                 H6(label),
                 P(children=[html.Pre(f"{col}: {np.round(function(df[col]), 3)}") for col in columns])
             ])
             for label, function in zip(labels, functions)
         ]
         stats += [
-            html.Div([
+            html.Div(children=[
                 H6("Kwantyle"),
                 P(className="stats__paragraph", children=[
                     "¼",
@@ -182,24 +182,29 @@ def register_1d_stats_callbacks():
     def generate_tables(columns, data, dtypes):
         if data is None or columns is None:
             raise PreventUpdate
+
         df = pd.DataFrame(data)
 
         numeric_columns = []
         categorical_columns = []
-        tables = []
+        numeric_html_components = []
+        categorical_html_components = []
 
         for col in columns:
             if is_number_type(dtypes[col]):
                 numeric_columns.append(col)
-            else:
+            elif is_categorical_type(dtypes[col]):
                 categorical_columns.append(col)
 
         for col in numeric_columns:
-            tables.append(numeric_tables(col, df))
+            numeric_html_components.append(numeric_tables(col, df))
         for col in categorical_columns:
-            tables.append(categorical_tables(col, df))
+            categorical_html_components.append(categorical_tables(col, df))
 
-        return tables
+        return html.Div(className="flex flex-col", children=[
+            GridDiv(columns_count=4, children=numeric_html_components),
+            GridDiv(columns_count=2, children=categorical_html_components),
+        ])
 
     def numeric_tables(column, df):
         values = df[column]
@@ -218,7 +223,7 @@ def register_1d_stats_callbacks():
 
         numeric_column_name = "Zmienna numeryczna"
 
-        return html.Div(children=[
+        return html.Div(className="my-4", children=[
             H6(f"Moda dla {column}"),
             P(children=mode_paragraph_content),
             dag.AgGrid(
@@ -256,7 +261,7 @@ def register_1d_stats_callbacks():
         count_column_name = "Liczebność"
         frequency_column_name = "Częstotliwość [%]"
 
-        return html.Div(className="mt-2", children=[
+        return html.Div(className="mt-4", children=[
             H6(f"Liczebność i częstotliwosć dla {column}"),
             dag.AgGrid(
                 id="stats-1d-categorical-table",
