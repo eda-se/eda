@@ -36,21 +36,26 @@ def register_data_correction_callbacks():
         Input("missing-values-column", "value"),
         State("data-table", "data"),
     )
-    def method_dropdown(column, df):
-        if column:
+    def method_dropdown(columns, df):
+        if columns:
             df = pd.DataFrame(df)
+            numeric_only = True
+            for column in columns:
+                if not is_numeric_dtype(df[column]):
+                    numeric_only = False
+
             options = [
                 {"label": "Kopiuj poprzednią wartość", "value": "ffill"},
                 {"label": "Zastąp najczęściej występującą wartością", "value": "most_frequent"},
                 {"label": "Usuń wiersze z brakującymi wartościami", "value": "delete"},
             ]
-            if is_numeric_dtype(df[column]):
+            if numeric_only:
                 options.append({"label": "Zastąp średnią", "value": "mean"})
                 options.append({"label": "Zastąp medianą", "value": "median"})
 
             return options
         else:
-            raise PreventUpdate
+            return []
 
     @callback(
         Output("data-table", "data", allow_duplicate=True),
@@ -61,10 +66,12 @@ def register_data_correction_callbacks():
         State("data-table", "data"),
         prevent_initial_call=True,
     )
-    def button_callback(n_clicks, column, method, missing_values, df):
-        if n_clicks and column and method and n_clicks > 0:
+    def button_callback(n_clicks, columns, method, missing_values, df):
+        if n_clicks and columns and method and n_clicks > 0:
             df = pd.DataFrame(df)
-            return handle_missing_values(df, column, method, missing_values=missing_values).to_dict("records")
+            for column in columns:
+                df = handle_missing_values(df, column, method, missing_values=missing_values)
+            return df.to_dict("records")
         else:
             return no_update
 
@@ -85,13 +92,28 @@ def register_data_correction_callbacks():
             return no_update
 
     @callback(
-        Output("missing-values-table", "data", allow_duplicate=True),
+        Output("missing-values-table", "rowData", allow_duplicate=True),
         Input("data-table", "data"),
         prevent_initial_call=True,
     )
     def table_data(data):
         df = pd.DataFrame(data)
-        return [{"col": col, "number": df[col].isna().sum()} for col in df.columns]
+        table_data_list = []
+        for col in df.columns:
+            missing = df[col].isna()
+            missing_list = []
+            for i in range(len(missing)):
+                if missing[i]:
+                    missing_list.append(str(i))
+            rows = ", ".join(missing_list)
+            print(rows)
+
+            table_data_list.append({
+                "col": col,
+                "number": missing.sum(),
+                "rows": rows,
+            })
+        return table_data_list
 
 
 def missing_values_dropdown(df: pd.DataFrame) -> html.Div:
@@ -104,7 +126,7 @@ def missing_values_dropdown(df: pd.DataFrame) -> html.Div:
         dag.AgGrid(
             id="missing-values-table",
 
-            rowData=number_of_missing_values,
+            # rowData=number_of_missing_values,
             columnDefs=[
                 {
                     "field": "col",
@@ -115,26 +137,25 @@ def missing_values_dropdown(df: pd.DataFrame) -> html.Div:
                 {
                     "field": "number",
                     "headerName": "Liczba wartości brakujących",
-                    "minWidth": 250,
+                    "minWidth": 300,
                     "filter": True,
+                    "resizable": False,
+                },
+                {
+                    "field": "rows",
+                    "headerName": "Numer rekordu z brakującymi wartościami",
+                    "minWidth": 300,
+                    "filter": False,
                     "resizable": False,
                 },
             ]
         ),
-        # dash_table.DataTable(
-        #     id="missing-values-table",
-        #     data= number_of_missing_values,
-        #     columns=[
-        #         {"name": "Kolumna", "id": "col"},
-        #         {"name": "Liczba wartości brakujących", "id": "number"},
-        #     ],
-        # ),
 
         html.Div(className="py-2", children=[
             html.Div(className="py-2", children=[
-                H4(f"Wybierz zmienną"),
+                H4(f"Wybierz zmienne"),
                 GridDiv(columns_count=4, children=[
-                    dcc.Dropdown(id="missing-values-column", options=col_options, placeholder="Zmienna"),
+                    dcc.Dropdown(id="missing-values-column", options=col_options, placeholder="Zmienna", multi=True),
                 ]),
             ]),
             html.Div(className="py-2", children=[
