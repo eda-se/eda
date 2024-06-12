@@ -6,8 +6,9 @@ body {
 }
 
 #main {
+  min-height: 680px;
   padding: 2rem;
-  background: url("../image/main-bg.png") top center no-repeat;
+  background: url("../image/main-bg.png") top center no-repeat fixed;
 }
 
 .Select-control, .Select.is-open .Select-control, .Select-menu-outer {
