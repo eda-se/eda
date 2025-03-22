@@ -10,7 +10,7 @@ dash-ag-grid = "~=31.2.0"
 scipy = "~=1.15.2"
 scikit-learn = "~=1.6.1"
 statsmodels = "~=0.14.2"
-gunicorn = "~=22.0.0"
+gunicorn = "~=23.0.0"
 
 [dev-packages]
 

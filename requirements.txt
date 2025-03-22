@@ -9,7 +9,7 @@ dash-core-components==2.0.0
 dash-html-components==2.0.0
 dash-table==5.0.0
 flask==3.0.3; python_version >= '3.8'
-gunicorn==22.0.0; python_version >= '3.7'
+gunicorn==23.0.0; python_version >= '3.7'
 idna==3.10; python_version >= '3.6'
 importlib-metadata==8.6.1; python_version >= '3.9'
 itsdangerous==2.2.0; python_version >= '3.8'
