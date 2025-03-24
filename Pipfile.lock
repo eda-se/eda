@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "33de7221e9524ef0bc97c2e00dc3e56601bee45cc199093431aa2e1ccb1bdd98"
+            "sha256": "53e7fbcf7adfd06862864a425ad56146d013a208b7cf809263238c8f8ebcfcb0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -149,12 +149,12 @@
         },
         "dash-ag-grid": {
             "hashes": [
-                "sha256:b346513a26b58e47422be9dfd56a053502a44636ca59b205ccbdaa76867facc4",
-                "sha256:b7320787902f347a2bcaa8f6da5a0442f5fd3760cf90b50b50d82ce68305cbc4"
+                "sha256:8f609601d25225a53130d5a2da1f43c685dc640c777a7de80bbaa070ded3d19c",
+                "sha256:a174c00b816d03a969c5af61a60f8f6b61af5a9b7058633c86424db99e62875b"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.6'",
-            "version": "==31.2.0"
+            "version": "==31.3.0"
         },
         "dash-core-components": {
             "hashes": [
@@ -303,11 +303,11 @@
         },
         "narwhals": {
             "hashes": [
-                "sha256:2a7b79bb5f511055c4c0142121fc0d4171ea171458e12d44dbd9c8fc6488e997",
-                "sha256:333472e2562343dfdd27407ec9b5114a07c81d0416794e4ac6b703dd925c6a1a"
+                "sha256:8bdbf3f76155887412eea04b0b06303856ac1aa3d9e8bda5b5e54612855fa560",
+                "sha256:bd0aa41434737adb4b26f8593f3559abc7d938730ece010fe727b58bc363580d"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==1.31.0"
+            "version": "==1.32.0"
         },
         "nest-asyncio": {
             "hashes": [
