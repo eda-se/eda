@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d940c9ed9c6f3cd23a950dce833771ffd937cde564c61e631fba67a4751dfc75"
+            "sha256": "bdb496cebe145b23883f3973170773bac0b4af9038f4300d6f424cb73b4dde2d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -140,12 +140,12 @@
         },
         "dash": {
             "hashes": [
-                "sha256:0ce0479d1bc958e934630e2de7023b8a4558f23ce1f9f5a4b34b65eb3903a869",
-                "sha256:20e8404f73d0fe88ce2eae33c25bbc513cbe52f30d23a401fa5f24dbb44296c8"
+                "sha256:86d3038ae9f09e1f246937afbab5451c9db5a3832911c325d2e1f0bcefe2b7c9",
+                "sha256:9c6577e056971590c002c07fd26376d3d501bddb39804466e401876fb1e043ac"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==2.18.2"
+            "version": "==3.0.3"
         },
         "dash-ag-grid": {
             "hashes": [
